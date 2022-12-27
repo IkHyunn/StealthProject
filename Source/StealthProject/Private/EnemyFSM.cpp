@@ -11,6 +11,7 @@
 #include "../StealthProjectGameModeBase.h"
 #include "TPSPlayer.h"
 #include <Kismet/KismetMathLibrary.h>
+#include <GameFramework/CharacterMovementComponent.h>
 
 // Sets default values for this component's properties
 UEnemyFSM::UEnemyFSM()
@@ -56,6 +57,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	case EEnemyState::Idle:
 		IdleState();
 		break;
+	case EEnemyState::Move:
+		MoveState();
+		break;
 	case EEnemyState::Chase:
 		ChaseState();
 		break;
@@ -73,7 +77,7 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	// 적이 바라보는 방향과 적과 타겟 사이의 방향간의 사이각 구하기
 	forward = me->GetActorForwardVector();  // 적이 앞을 바라보는 Vector
 	targetforward = target->GetActorLocation() - me->GetActorLocation();  // 적이 타겟을 바라보는 Vector
-//	UE_LOG(LogTemp, Warning, TEXT("%f"), targetforward.Size());
+	UE_LOG(LogTemp, Warning, TEXT("%f"), targetforward.Size());
 
 	Dot = FVector::DotProduct(forward, targetforward.GetSafeNormal());  // GetSafeNormal()은 원본을 바꾸지 않고, Normalize는 원본을 바꾼다.
 	AcosAngle = FMath::Acos(Dot);
@@ -91,7 +95,7 @@ void UEnemyFSM::IdleState()
 
 	if (currentTime > idleDelayTime)
 	{
-			if (targetforward.Size() < 1000)
+		if (targetforward.Size() < 1000)
 		{
 			if (AngleDegree < 30)
 			{
@@ -126,18 +130,29 @@ void UEnemyFSM::IdleState()
 void UEnemyFSM::MoveState()
 {
 	UE_LOG(LogTemp, Warning, TEXT("MOVE"));
-
-	if (targetforward.Size() < 1000)
+	currentTime += GetWorld()->GetRealTimeSeconds();
+	
+	if (currentTime > moveDelayTime)
 	{
-		if (AngleDegree < 30)
+		if (targetforward.Size() < 1000)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-			mState = EEnemyState::Chase;
-			currentTime = 0;
+			if (AngleDegree < 30)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+				mState = EEnemyState::Chase;
+				currentTime = 0;
 
-			anim->animState = mState;
+				anim->animState = mState;
+			}
+		}
+		else
+		{
+			me->GetCharacterMovement()->MaxWalkSpeed = 200;
+			me->AddMovementInput(targetforward.GetSafeNormal());
+			ai->MoveToLocation(me->GetActorLocation()+FVector(-200, 0, 0));
 		}
 	}
+
 
 //  	auto ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());  // NavigationSystem 객체 얻어오기
 //  	
@@ -162,12 +177,13 @@ void UEnemyFSM::ChaseState()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Chase"));
 
+	me->GetCharacterMovement()->MaxWalkSpeed = 600;
  	me->AddMovementInput(targetforward.GetSafeNormal());  // 3. 바라보는 방향으로 이동한다.
  	ai->MoveToLocation(target->GetActorLocation());
 
 	// 타깃과 가까워지면 공격 상태로 전환
 	if (targetforward.Size() < attackRange)	// 1. 만약 거리가 공격범위 안으로 들어오면
-									// Size() 함수는 크기를 가져오는 함수.
+											// Size() 함수는 크기를 가져오는 함수.
 	{
 		ai->StopMovement();
 
@@ -243,9 +259,8 @@ void UEnemyFSM::OnBackAttack()
 //	else  // HP가 0 이하로 떨어지면
 //	{
 	mState = EEnemyState::Die;  // 죽음 상태로 전환
-	me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
+//	me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
 	anim->PlayDamageAnim(TEXT("Die"));
-		//me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
 //	}
 }
 

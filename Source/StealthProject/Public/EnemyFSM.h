@@ -48,6 +48,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
 	float idleDelayTime = 2.0f;	// 대기 시간
 	float currentTime = 0.0f;		// 경과 시간
+	float moveDelayTime = 1.0f;	// 움직임 대기 시간
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 		class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
