@@ -77,7 +77,7 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	// 적이 바라보는 방향과 적과 타겟 사이의 방향간의 사이각 구하기
 	forward = me->GetActorForwardVector();  // 적이 앞을 바라보는 Vector
 	targetforward = target->GetActorLocation() - me->GetActorLocation();  // 적이 타겟을 바라보는 Vector
-	UE_LOG(LogTemp, Warning, TEXT("%f"), targetforward.Size());
+//	UE_LOG(LogTemp, Warning, TEXT("%f"), targetforward.Size());
 
 	Dot = FVector::DotProduct(forward, targetforward.GetSafeNormal());  // GetSafeNormal()은 원본을 바꾸지 않고, Normalize는 원본을 바꾼다.
 	AcosAngle = FMath::Acos(Dot);
@@ -86,32 +86,59 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	// 	FVector OutterProduct = FVector::CrossProduct(forward, targetforward);  // 좌, 우 구분
 	// 	float DegSign = UKismetMathLibrary::SignOfFloat(OutterProduct.Z);
 	// 	float ResultDegree = AngleDegree*DegSign;
+
+	// LineTrace 설정
+	startPos = me->GetActorLocation();  // LineTrace 시작 위치
+	endPos = me->GetActorLocation() + targetforward;  // LineTrace 종료 위치(적이 플레이어를 바라보는 방향)
+	params.AddIgnoredActor(me);  // 자기 자신(적)은 충돌에서 제외
+
+	bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
+	HitActor = hitInfo.GetActor();  // 충돌한 액터를 가져와 HitActor에 저장.
 }
 
 void UEnemyFSM::IdleState()
 {
-//	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
+
+	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
 	currentTime+=GetWorld()->DeltaTimeSeconds;
 
-	if (currentTime > idleDelayTime)
+	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
 	{
-		if (targetforward.Size() < 1000)
+		if (targetforward.Size() < 1000)  // 적이 플레이어를 바라보는 거리가 1000 이하이면
 		{
-			if (AngleDegree < 30)
+			if (AngleDegree < 40)  // 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-				mState = EEnemyState::Chase;
-				currentTime = 0;
+				if (bHit)  // LineTrace가 충돌이 되었다면
+				{
+					if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 Actor의 이름에 Player가 들어간다면
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+						mState = EEnemyState::Chase;  // Chase 상태로 변환
+						currentTime = 0;  // 누적된 시간을 초기화
 
-				anim->animState = mState;
+						anim->animState = mState;  // 애니메이션 동기화
+ 					}
+					
+					else  // 충돌한 Actor의 이름에 Player가 들어가지 않는다면
+					{
+						UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
+ 						mState = EEnemyState::Move;  // Move 상태로 전환
+  						currentTime = 0;  // 누적된 시간을 초기화
+  
+  						anim->animState = mState;  // 애니메이션 동기화
+						GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
+					}
+				}
 			}
 		}
-		else
+		else  // 적이 플레이어를 바라보는 거리가 1000보다 크다면
 		{
-			mState = EEnemyState::Move;
-			currentTime = 0;
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
+			mState = EEnemyState::Move;  // Move 상태로 전환
+			currentTime = 0;  // 누적된 시간을 초기화
 
-			anim->animState = mState;
+			anim->animState = mState;  // 애니메이션 동기화
+			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
 		}
 	}
 
@@ -130,29 +157,54 @@ void UEnemyFSM::IdleState()
 void UEnemyFSM::MoveState()
 {
 	UE_LOG(LogTemp, Warning, TEXT("MOVE"));
-	currentTime += GetWorld()->GetRealTimeSeconds();
+//	currentTime += GetWorld()->DeltaTimeSeconds;
 	
-	if (currentTime > moveDelayTime)
-	{
-		if (targetforward.Size() < 1000)
+// 	if (currentTime > moveDelayTime)  // 누적된 시간이 DelayTime(1)보다 크다면
+// 	{
+		if (targetforward.Size() < 1000)  // 적이 플레이어를 바라보는 거리가 1000 이하이면
 		{
-			if (AngleDegree < 30)
+			if (AngleDegree < 40)  // 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-				mState = EEnemyState::Chase;
-				currentTime = 0;
+				if (bHit)  // LineTrace가 충돌이 되었다면
+				{
+					if (HitActor->GetName().Contains(TEXT("Player")))
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+						mState = EEnemyState::Chase;  // Chase 상태로 전환
+//						currentTime = 0;  // 누적 시간 초기화
+
+						anim->animState = mState;  // 애니메이션 동기화
+					}
+					else  // 충돌한 Actor의 이름에 Player가 들어가지 않는다면
+					{
+						UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
+						me->GetCharacterMovement()->MaxWalkSpeed = 200;
+						auto result = ai->MoveToLocation(randomPos);
+						if (result == EPathFollowingRequestResult::AlreadyAtGoal)
+						{
+							mState = EEnemyState::Idle;
+
+							anim->animState = mState;
+						}
+//						me->AddMovementInput(targetforward.GetSafeNormal());
+//						ai->MoveToLocation(me->GetActorLocation() + FVector(-200, 0, 0));
+					}
+				}
+			}
+		}
+		else  // 적이 플레이어를 바라보는 거리가 1000보다 크면
+		{
+			me->GetCharacterMovement()->MaxWalkSpeed = 200;
+			auto result = ai->MoveToLocation(randomPos);
+			if (result == EPathFollowingRequestResult::AlreadyAtGoal)
+			{
+				mState = EEnemyState::Idle;
 
 				anim->animState = mState;
 			}
 		}
-		else
-		{
-			me->GetCharacterMovement()->MaxWalkSpeed = 200;
-			me->AddMovementInput(targetforward.GetSafeNormal());
-			ai->MoveToLocation(me->GetActorLocation()+FVector(-200, 0, 0));
-		}
-	}
-
+//	}
+}
 
 //  	auto ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());  // NavigationSystem 객체 얻어오기
 //  	
@@ -172,7 +224,8 @@ void UEnemyFSM::MoveState()
 //  		anim->animState = mState;
 //  		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 새로운 랜덤 위치를 가져온다.
 //  	}
-}
+
+
 void UEnemyFSM::ChaseState()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Chase"));
@@ -238,7 +291,7 @@ void UEnemyFSM::OnDamageProcess()
 	else  // HP가 0 이하로 떨어지면
 	{
 		mState = EEnemyState::Die;  // 죽음 상태로 전환
-		me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
+//		me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
 		anim->PlayDamageAnim(TEXT("Die"));
 	}
 
@@ -248,19 +301,14 @@ void UEnemyFSM::OnDamageProcess()
 
 void UEnemyFSM::OnBackAttack()
 {
-//	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	HP = 0;
 
-// 	if (HP > 0)
-// 	{
-// 		mState = EEnemyState::Damage;
-// 		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), HP);
-// 	}
-//	else  // HP가 0 이하로 떨어지면
-//	{
+	ai->StopMovement();
+
 	mState = EEnemyState::Die;  // 죽음 상태로 전환
 //	me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
-	anim->PlayDamageAnim(TEXT("Die"));
+	anim->PlayDamageAnim(TEXT("Assasinated"));
 //	}
 }
 

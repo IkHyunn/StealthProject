@@ -27,6 +27,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=FSMComponent)
 	class UEnemyFSM* fsm;
 

@@ -59,6 +59,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = FSM)
 		float attackRange = 180.0f;
 
+	// 시야각을 구하기 위한 변수
 	UPROPERTY()
 	FVector forward;
 
@@ -72,6 +73,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = FSM)
 		float detectedRange = 1000.0f;
 
+	// 라인트레이스 설정을 위한 변수
+	FVector startPos;  // 라인트레이스 시작 위치
+	FVector endPos;  // 라인트레이스 종료 위치
+	FHitResult hitInfo;  // LineTrace의 충돌 정보를 담을 변수
+	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
+	
+	UPROPERTY()
+	class AActor* HitActor;
+
+	UPROPERTY(EditAnywhere)
+	bool bHit;
+
 	UPROPERTY(EditAnywhere, Category = FSM)
 		float attackDelayTime = 2.0f;
 
@@ -83,7 +96,7 @@ public:
 		int32 HP = 5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-		float damageDelayTime = 2.0f;
+		float damageDelayTime = 0.5f;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 		float dieSpeed = 50.0f;

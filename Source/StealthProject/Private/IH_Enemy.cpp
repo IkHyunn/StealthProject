@@ -19,7 +19,6 @@ AIH_Enemy::AIH_Enemy()
 	{
 		GetMesh()->SetSkeletalMesh(tempMesh.Object);
 		GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -88), FRotator(0, -90, 0));
-/*		GetMesh()->SetRelativeScale3D(FVector(0.84f));*/
 	}
 
 	fsm = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
@@ -42,12 +41,14 @@ AIH_Enemy::AIH_Enemy()
 void AIH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 // Called every frame
 void AIH_Enemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
 
 // Called to bind functionality to input

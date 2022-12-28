@@ -26,12 +26,5 @@ if (player)    //소유폰 얻어오기 성공햇을 때
 	// 점프
 	auto movement = player->GetCharacterMovement();   // movement 변수에 담아서 쓰자
 	isInAir = movement->IsFalling();    // 플레이어가 현재 공중에 있는지 여부를 기억하고 싶다. 참 거짓 값
-
-
-
 	}
-
-
-
-
 }
