@@ -98,101 +98,57 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
+//	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
 	currentTime+=GetWorld()->DeltaTimeSeconds;
 
 	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
 	{
-		if (targetforward.Size() < 1000)  // 적이 플레이어를 바라보는 거리가 1000 이하이면
+		if (targetforward.Size() < 1000 && AngleDegree < 40 && bHit)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+																		// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
+																		// LineTrace가 충돌이 되었다면
 		{
-			if (AngleDegree < 40)  // 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
+			if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 Actor의 이름에 Player가 들어간다면
 			{
-				if (bHit)  // LineTrace가 충돌이 되었다면
-				{
-					if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 Actor의 이름에 Player가 들어간다면
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-						mState = EEnemyState::Chase;  // Chase 상태로 변환
-						currentTime = 0;  // 누적된 시간을 초기화
+				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+				mState = EEnemyState::Chase;  // Chase 상태로 변환
+				currentTime = 0;  // 누적된 시간을 초기화
 
-						anim->animState = mState;  // 애니메이션 동기화
- 					}
-					
-					else  // 충돌한 Actor의 이름에 Player가 들어가지 않는다면
-					{
-						UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
- 						mState = EEnemyState::Move;  // Move 상태로 전환
-  						currentTime = 0;  // 누적된 시간을 초기화
-  
-  						anim->animState = mState;  // 애니메이션 동기화
-						GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
-					}
-				}
-			}
+				anim->animState = mState;  // 애니메이션 동기화
+ 			}
 		}
-		else  // 적이 플레이어를 바라보는 거리가 1000보다 크다면
+		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
 			mState = EEnemyState::Move;  // Move 상태로 전환
 			currentTime = 0;  // 누적된 시간을 초기화
 
 			anim->animState = mState;  // 애니메이션 동기화
-			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
+			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
 		}
 	}
-
-// 	currentTime += GetWorld()->DeltaTimeSeconds;	// 1. 시간이 흘렀으니까
-// 	if (currentTime > idleDelayTime)	// 2. 만약 경과 시간이 대기 시간을 초과했다면
-// 	{
-// 		mState = EEnemyState::Move;		// 3. 이동상태로 전환한다.
-// 		currentTime = 0;				// 4. 경과 시간을 초기화.
-// 
-// 		anim->animState = mState;	// 애니메이션 상태 동기화
-// 
-// 		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
-// 	}
 }
 
 void UEnemyFSM::MoveState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MOVE"));
+//	UE_LOG(LogTemp, Warning, TEXT("MOVE"));
 //	currentTime += GetWorld()->DeltaTimeSeconds;
 	
-// 	if (currentTime > moveDelayTime)  // 누적된 시간이 DelayTime(1)보다 크다면
-// 	{
-		if (targetforward.Size() < 1000)  // 적이 플레이어를 바라보는 거리가 1000 이하이면
-		{
-			if (AngleDegree < 40)  // 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
+//	 	if (currentTime > moveDelayTime)  // 누적된 시간이 DelayTime(1)보다 크다면
+//	 	{
+ 		if (targetforward.Size() < 1000 && AngleDegree < 40 && bHit)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+																		// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
+																		// LineTrace가 충돌이 되었다면
+ 		{
+			if (HitActor->GetName().Contains(TEXT("Player")))
 			{
-				if (bHit)  // LineTrace가 충돌이 되었다면
-				{
-					if (HitActor->GetName().Contains(TEXT("Player")))
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-						mState = EEnemyState::Chase;  // Chase 상태로 전환
-//						currentTime = 0;  // 누적 시간 초기화
+				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+				mState = EEnemyState::Chase;  // Chase 상태로 전환
+				currentTime = 0;  // 누적 시간 초기화
 
-						anim->animState = mState;  // 애니메이션 동기화
-					}
-					else  // 충돌한 Actor의 이름에 Player가 들어가지 않는다면
-					{
-						UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
-						me->GetCharacterMovement()->MaxWalkSpeed = 200;
-						auto result = ai->MoveToLocation(randomPos);
-						if (result == EPathFollowingRequestResult::AlreadyAtGoal)
-						{
-							mState = EEnemyState::Idle;
-
-							anim->animState = mState;
-						}
-//						me->AddMovementInput(targetforward.GetSafeNormal());
-//						ai->MoveToLocation(me->GetActorLocation() + FVector(-200, 0, 0));
-					}
-				}
+				anim->animState = mState;  // 애니메이션 동기화
 			}
 		}
-		else  // 적이 플레이어를 바라보는 거리가 1000보다 크면
+		else
 		{
 			me->GetCharacterMovement()->MaxWalkSpeed = 200;
 			auto result = ai->MoveToLocation(randomPos);
@@ -201,11 +157,14 @@ void UEnemyFSM::MoveState()
 				mState = EEnemyState::Idle;
 
 				anim->animState = mState;
+				currentTime = 0;
 			}
 		}
+
 //	}
 }
 
+//		내비게이션 길찾기
 //  	auto ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());  // NavigationSystem 객체 얻어오기
 //  	
 //   	FPathFindingQuery query;
@@ -295,8 +254,7 @@ void UEnemyFSM::OnDamageProcess()
 		anim->PlayDamageAnim(TEXT("Die"));
 	}
 
-	anim->animState = mState;
-	ai->StopMovement();
+
 }
 
 void UEnemyFSM::OnBackAttack()
