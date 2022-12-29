@@ -83,9 +83,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	AcosAngle = FMath::Acos(Dot);
 	AngleDegree = FMath::RadiansToDegrees(AcosAngle);
 
-	// 	FVector OutterProduct = FVector::CrossProduct(forward, targetforward);  // 좌, 우 구분
-	// 	float DegSign = UKismetMathLibrary::SignOfFloat(OutterProduct.Z);
-	// 	float ResultDegree = AngleDegree*DegSign;
+	OutterProduct = FVector::CrossProduct(forward, targetforward);  // 좌, 우 구분
+	DegSign = UKismetMathLibrary::SignOfFloat(OutterProduct.Z);
+	ResultDegree = AngleDegree*DegSign;
 
 	// LineTrace 설정
 	startPos = me->GetActorLocation();  // LineTrace 시작 위치
@@ -98,8 +98,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-//	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
+	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
 	currentTime+=GetWorld()->DeltaTimeSeconds;
+	UE_LOG(LogTemp, Warning, TEXT("%f"), ResultDegree);
 
 	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
 	{
@@ -115,6 +116,7 @@ void UEnemyFSM::IdleState()
 
 				anim->animState = mState;  // 애니메이션 동기화
  			}
+			else return;
 		}
 		else
 		{
@@ -147,6 +149,7 @@ void UEnemyFSM::MoveState()
 
 				anim->animState = mState;  // 애니메이션 동기화
 			}
+			else return;
 		}
 		else
 		{

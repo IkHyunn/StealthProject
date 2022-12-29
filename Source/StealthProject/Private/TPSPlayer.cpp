@@ -144,7 +144,6 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    //6- 스나이퍼 Released
 
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &ATPSPlayer::InputAttack);  // 공격
-
 	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &ATPSPlayer::InputAssasinate);  // 암살
 }
 
@@ -227,7 +226,6 @@ void ATPSPlayer::InputFire()   // 3- 발사
 				enemyFSM->OnDamageProcess();
 			}
 		}
-
 	}
 }
 
@@ -236,8 +234,6 @@ void ATPSPlayer::ChangeToGrenadeGun()    // 5- 그레나데건으로
 	bUsingGrenadeGun = true;   // 사용중  true
 	sniperGunComp->SetVisibility(false);   //스나이퍼 no
 	gunMeshComp->SetVisibility(true);    // 그레나데 yes
-
-
 }
 
 void ATPSPlayer::ChangeToSniperGun()   // 스나이퍼건으로

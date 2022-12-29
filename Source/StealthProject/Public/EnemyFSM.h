@@ -46,7 +46,7 @@ public:
 	void DieState();		// 죽음 상태
 
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
-	float idleDelayTime = 2.0f;	// 대기 시간
+	float idleDelayTime = 3.0f;	// 대기 시간
 	float currentTime = 0.0f;		// 경과 시간
 	float moveDelayTime = 1.0f;	// 움직임 대기 시간
 
@@ -69,6 +69,10 @@ public:
 	float Dot;
 	float AcosAngle;
 	float AngleDegree;
+
+	FVector OutterProduct;
+	float DegSign;
+	float ResultDegree;
 
 	UPROPERTY(EditAnywhere, Category = FSM)
 		float detectedRange = 1000.0f;
