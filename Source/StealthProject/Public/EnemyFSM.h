@@ -57,7 +57,7 @@ public:
 		class AIH_Enemy* me;			// 현재 액터를 나로 설정
 
 	UPROPERTY(EditAnywhere, Category = FSM)
-		float attackRange = 180.0f;
+		float attackRange = 120.0f;
 
 	// 시야각을 구하기 위한 변수
 	UPROPERTY()

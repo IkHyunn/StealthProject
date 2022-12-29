@@ -11,10 +11,10 @@ void UEnemyAnim::OnEndAttackAnimation()
 	bAttackPlay = false;
 }
 
-void UEnemyAnim::OnAttackAnimation()
-{
-	auto actor = UGameplayStatics::GetActorOfClass(GetWorld(), ATPSPlayer::StaticClass());
-	target = Cast<ATPSPlayer>(actor);
-
-	target->OnHitEvent();
-}
+// void UEnemyAnim::OnAttackAnimation()
+// {
+// 	auto actor = UGameplayStatics::GetActorOfClass(GetWorld(), ATPSPlayer::StaticClass());
+// 	target = Cast<ATPSPlayer>(actor);
+// 
+// 	target->OnHitEvent();
+// }

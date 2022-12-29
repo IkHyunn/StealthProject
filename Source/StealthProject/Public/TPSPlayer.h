@@ -72,6 +72,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
 
+	UPROPERTY(EditAnywhere)
+	bool isOnAttack = false;
+
 	float currentTime = 0;
 
 	UPROPERTY(EditAnywhere)

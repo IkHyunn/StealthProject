@@ -89,7 +89,6 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 		sniperGunComp->SetRelativeRotation(FRotator(0, 90, 0));     // 10 회전
 		sniperGunComp->SetRelativeScale3D(FVector(0.15f));   // 총 스케일 
 	}
-
 }
 
 
@@ -300,15 +299,15 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 
 void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 {
-	UE_LOG(LogTemp, Warning, TEXT("Player Damaged!"));
-	HP--;
-	UE_LOG(LogTemp, Warning, TEXT("Player HP : %d"), HP);
+		UE_LOG(LogTemp, Warning, TEXT("Player Damaged!"));
+		HP--;
+		UE_LOG(LogTemp, Warning, TEXT("Player HP : %d"), HP);
 
-	if (HP <= 0)  // HP가 0이 되면
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Dead!"));
-		OnGameOver();  // 게임 오버 함수 호출
-	}
+		if (HP <= 0)  // HP가 0이 되면
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Player Dead!"));
+			OnGameOver();  // 게임 오버 함수 호출
+		}
 }
 
 void ATPSPlayer::OnGameOver()

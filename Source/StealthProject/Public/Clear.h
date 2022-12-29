@@ -27,7 +27,7 @@ public:
 	class UBoxComponent* compBox;
 
 	UPROPERTY(EditAnywhere)
-	class AIH_Player* character;
+	class ATPSPlayer* character;
 
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

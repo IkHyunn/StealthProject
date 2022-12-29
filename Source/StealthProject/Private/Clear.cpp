@@ -3,10 +3,10 @@
 
 #include "Clear.h"
 #include <Components/BoxComponent.h>
-#include "IH_Player.h"
 #include "../StealthProjectGameModeBase.h"
 #include "IH_ClearUI.h"
 #include <Kismet/GameplayStatics.h>
+#include "TPSPlayer.h"
 
 // Sets default values
 AClear::AClear()
@@ -38,7 +38,7 @@ void AClear::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherAc
 {
 	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
 
-	character = Cast<AIH_Player>(OtherActor);  // BoxComponent에 Overlap된 OtherActor가 Player이고,
+	character = Cast<ATPSPlayer>(OtherActor);  // BoxComponent에 Overlap된 OtherActor가 Player이고,
 
 	if (currMode->currScore == 1)  // 현재 점수가 일정 점수 이상이 되면
 	{

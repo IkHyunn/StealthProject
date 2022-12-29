@@ -92,35 +92,46 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	endPos = me->GetActorLocation() + targetforward;  // LineTrace 종료 위치(적이 플레이어를 바라보는 방향)
 	params.AddIgnoredActor(me);  // 자기 자신(적)은 충돌에서 제외
 
-	bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
-	HitActor = hitInfo.GetActor();  // 충돌한 액터를 가져와 HitActor에 저장.
+// 	bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
+// 	HitActor = hitInfo.GetActor();  // 충돌한 액터를 가져와 HitActor에 저장.
 }
 
 void UEnemyFSM::IdleState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
+//	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
 	currentTime+=GetWorld()->DeltaTimeSeconds;
-	UE_LOG(LogTemp, Warning, TEXT("%f"), ResultDegree);
+//	UE_LOG(LogTemp, Warning, TEXT("%f"), AngleDegree);
 
 	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
 	{
-		if (targetforward.Size() < 1000 && AngleDegree < 40 && bHit)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
-																		// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
-																		// LineTrace가 충돌이 되었다면
+		if (targetforward.Size() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+																// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
 		{
-			if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 Actor의 이름에 Player가 들어간다면
+			bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
+			HitActor = hitInfo.GetActor();  // 충돌한 액터를 가져와 HitActor에 저장.
+			if (bHit)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-				mState = EEnemyState::Chase;  // Chase 상태로 변환
-				currentTime = 0;  // 누적된 시간을 초기화
+				if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 Actor의 이름에 Player가 들어간다면
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+					mState = EEnemyState::Chase;  // Chase 상태로 변환
+					currentTime = 0;  // 누적된 시간을 초기화
 
-				anim->animState = mState;  // 애니메이션 동기화
- 			}
-			else return;
+					anim->animState = mState;  // 애니메이션 동기화
+				}
+				else
+				{
+					mState = EEnemyState::Move;  // Move 상태로 전환
+					currentTime = 0;  // 누적된 시간을 초기화
+
+					anim->animState = mState;  // 애니메이션 동기화
+					GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
+				}
+			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
+//			UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
 			mState = EEnemyState::Move;  // Move 상태로 전환
 			currentTime = 0;  // 누적된 시간을 초기화
 
@@ -135,36 +146,41 @@ void UEnemyFSM::MoveState()
 //	UE_LOG(LogTemp, Warning, TEXT("MOVE"));
 //	currentTime += GetWorld()->DeltaTimeSeconds;
 	
-//	 	if (currentTime > moveDelayTime)  // 누적된 시간이 DelayTime(1)보다 크다면
-//	 	{
- 		if (targetforward.Size() < 1000 && AngleDegree < 40 && bHit)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
-																		// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
-																		// LineTrace가 충돌이 되었다면
- 		{
-			if (HitActor->GetName().Contains(TEXT("Player")))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
-				mState = EEnemyState::Chase;  // Chase 상태로 전환
-				currentTime = 0;  // 누적 시간 초기화
-
-				anim->animState = mState;  // 애니메이션 동기화
-			}
-			else return;
-		}
-		else
+//	 if (currentTime > moveDelayTime)  // 누적된 시간이 DelayTime(1)보다 크다면
+//	 {
+		me->GetCharacterMovement()->MaxWalkSpeed = 200;  // 최고 속도 200으로
+		auto result = ai->MoveToLocation(randomPos);  // 랜덤 포지션으로 이동한다.
+		if (result == EPathFollowingRequestResult::AlreadyAtGoal)  // 랜덤 포지션에 도착했으면
 		{
-			me->GetCharacterMovement()->MaxWalkSpeed = 200;
-			auto result = ai->MoveToLocation(randomPos);
-			if (result == EPathFollowingRequestResult::AlreadyAtGoal)
-			{
-				mState = EEnemyState::Idle;
-
-				anim->animState = mState;
-				currentTime = 0;
+			mState = EEnemyState::Idle;  // Idle 상태로 전환
+			anim->animState = mState;  // 애니메이션 동기화
+			currentTime = 0;  // 현재 시간 초기화
+		}
+		else  // 랜덤 포지션에 도착하지 않았으면
+		{
+			if (targetforward.Size() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+	 																// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
+	  		{
+	 			bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출 한다.
+	 			HitActor = hitInfo.GetActor();  // 충돌한 액터를 가져와 HitActor에 저장한다.
+	 	 		if (bHit)  // LineTrace가 충돌했으면
+	 			{
+	 				if (HitActor->GetName().Contains(TEXT("Player")))  // 충돌한 액터에 Player라는 글자가 있으면
+	 				{
+	 					UE_LOG(LogTemp, Warning, TEXT("Player Detected"));
+	 					mState = EEnemyState::Chase;  // Chase 상태로 전환
+	 					currentTime = 0;  // 누적 시간 초기화
+	 		 			anim->animState = mState;  // 애니메이션 동기화
+	 				}
+	 				else  // Player라는 글자가 없으면
+	 				{
+	 					UE_LOG(LogTemp, Warning, TEXT("%s"), *(HitActor->GetName()));
+						return;  // 반환한다.
+					}
+				}
 			}
 		}
-
-//	}
+// 	}
 }
 
 //		내비게이션 길찾기
@@ -190,7 +206,7 @@ void UEnemyFSM::MoveState()
 
 void UEnemyFSM::ChaseState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Chase"));
+//	UE_LOG(LogTemp, Warning, TEXT("Chase"));
 
 	me->GetCharacterMovement()->MaxWalkSpeed = 600;
  	me->AddMovementInput(targetforward.GetSafeNormal());  // 3. 바라보는 방향으로 이동한다.
@@ -205,10 +221,11 @@ void UEnemyFSM::ChaseState()
 		mState = EEnemyState::Attack;	// 2. 공격 상태로 전환한다.
 
 		anim->animState = mState;	// 애니메이션 상태 동기화
-		anim->bAttackPlay = true;	// 공격 애니메이션 재생 활성화
+//		anim->bAttackPlay = false;
 		currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
 	}
 }
+
 void UEnemyFSM::AttackState()
 {
 	// 일정 시간마다 한번씩 공격
@@ -229,6 +246,7 @@ void UEnemyFSM::AttackState()
 	if (distance > attackRange)
 	{
 		mState = EEnemyState::Chase;
+		anim->bAttackPlay = false;
 
 		anim->animState = mState;
 	}
@@ -264,6 +282,7 @@ void UEnemyFSM::OnBackAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	HP = 0;
+	anim->bAttackPlay = false;
 
 	ai->StopMovement();
 
@@ -276,6 +295,9 @@ void UEnemyFSM::OnBackAttack()
 void UEnemyFSM::DamageState()
 {
 	currentTime += GetWorld()->DeltaTimeSeconds;  // 1. 시간이 흘렀으니까
+
+	anim->bAttackPlay = false;
+	ai->StopMovement();
 
 	if (currentTime > damageDelayTime)   // 2. 경과 시간이 대기 시간을 초과했다면
 	{
@@ -300,6 +322,8 @@ void UEnemyFSM::DieState()
 // 
 // 	if (P.Z < -200.0f)  // P(위치)의 Z값이 -200 이하가 되면
 // 	{
+		anim->bAttackPlay = false;
+
 		me->Destroy();  // 파괴한다.
 		AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
 		currMode->AddScore(1);

@@ -35,8 +35,17 @@ public:
 	class UBoxComponent* compBox;
 
 	UPROPERTY(EditAnywhere)
-	class ATPSPlayer* character;
+	class ATPSPlayer* character;  // Overlap 된 OtherActor가 캐릭터일 떄 저장해둘 변수 선언
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* compHandBox;
 
  	UFUNCTION()
- 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+ 	void OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnHandEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
