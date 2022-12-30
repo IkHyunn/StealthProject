@@ -4,6 +4,7 @@
 #include "PlayerAnim.h"
 #include "TPSPlayer.h"     //  10. cast 하기 
 #include <GameFramework/CharacterMovementComponent.h>    // 플레이어 공중존재 여부 변수에서 참조해야
+#include <GameFramework/Actor.h>
 
 
 
@@ -22,6 +23,11 @@ if (player)    //소유폰 얻어오기 성공햇을 때
 	FVector velocity = player->GetVelocity();
 	FVector forwardVector = player->GetActorForwardVector();
 	speed = FVector::DotProduct(forwardVector, velocity);   // speed 에 두벡터의 내적값을 넣어 주어 
+
+	// 좌우속도 할당하기
+	FVector rightVector = player->GetActorRightVector();
+	direction = FVector::DotProduct(rightVector, velocity);  
+
 
 	// 점프
 	auto movement = player->GetCharacterMovement();   // movement 변수에 담아서 쓰자
