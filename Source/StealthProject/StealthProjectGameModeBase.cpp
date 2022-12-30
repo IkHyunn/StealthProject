@@ -4,14 +4,38 @@
 #include "StealthProjectGameModeBase.h"
 #include "IH_CountUI.h"
 #include "IH_GameOverUI.h"
+#include "IH_MainMenu.h"
+
+AStealthProjectGameModeBase::AStealthProjectGameModeBase()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	ConstructorHelpers::FClassFinder<UIH_CountUI> tempCount(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_CountUI.WG_CountUI_C'"));
+	if (tempCount.Succeeded())
+	{
+		countWidget = tempCount.Class;
+	}
+
+	ConstructorHelpers::FClassFinder<UIH_GameOverUI> tempGameover(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_GameOverUI.WG_GameOverUI_C'"));
+	if (tempGameover.Succeeded())
+	{
+		gameoverWidget = tempGameover.Class;
+	}
+
+	ConstructorHelpers::FClassFinder<UIH_MainMenu> tempMainmenu(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_MainMenu.WG_MainMenu_C'"));
+	if (tempMainmenu.Succeeded())
+	{
+		mainmenuWidget = tempMainmenu.Class;
+	}
+}
 
 void AStealthProjectGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	countUI = CreateWidget<UIH_CountUI>(GetWorld(), countWidget);
-	countUI->AddToViewport();
-	
+
+	mainMenuUI = CreateWidget<UIH_MainMenu>(GetWorld(), mainmenuWidget);	
 }
 
 void AStealthProjectGameModeBase::AddScore(int32 addValue)

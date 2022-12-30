@@ -14,8 +14,8 @@ class STEALTHPROJECT_API AStealthProjectGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 
-// public:
-// 	AStealthProjectGameModeBase();
+public:
+	AStealthProjectGameModeBase();
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,14 +31,20 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UIH_CountUI> countWidget;  // UIH_CountUI 클래스를 가져와 countWidget에 저장해둔다.
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UIH_CountUI* countUI;  // UIH_CountUI 클래스를 countUI에 저장한다.
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UIH_GameOverUI> gameoverWidget;  //UIH_GameOverUI 클래스를 가져와 gameoverWidget에 저장해둔다.
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UIH_GameOverUI* gameoverUI;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UIH_MainMenu> mainmenuWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UIH_MainMenu* mainMenuUI;
 
 	void ShowGameOverUI();  // GameOverUI를 띄우는 함수, 캐릭터가 죽었을 때 호출
 };

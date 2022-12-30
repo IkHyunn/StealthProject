@@ -59,6 +59,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = SniperUI)    //  6-2 스나이퍼 UI 위젯공장
 	TSubclassOf<class UUserWidget> sniperUIFactory;      // UI팩토리    ????
+
 	UPROPERTY()
 	class UUserWidget* _sniperUI;     // 스나이퍼 ui 위젯 인스턴스
 
