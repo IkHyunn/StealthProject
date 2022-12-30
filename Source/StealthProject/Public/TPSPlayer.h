@@ -68,10 +68,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = SniperUI)    //  6-4 일반 조준 크로스헤어UI 속성 추가
 	TSubclassOf<class UUserWidget> crosshairUIFactory;
-	class UUserWidget* _crosshairUI;                     // 크로스헤어 인스턴스
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UUserWidget* _crosshairUI;                     // 크로스헤어 인스턴스
+		
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10-걷기 속도
-	float walkSpeed = 200;                     
+	float walkSpeed = 200;                 
 	
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10- 달리기 속도
 	float runSpeed = 600;

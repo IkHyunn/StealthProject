@@ -17,6 +17,7 @@
 #include "EnemyFSM.h"
 #include "../StealthProjectGameModeBase.h"
 #include <GameFramework/CharacterMovementComponent.h>    // 10- getcharacter 하려면
+#include <Particles/ParticleSystem.h>
 
 
 
@@ -77,7 +78,6 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 
 	//5- 스나이퍼 건 메시
 
-	
 	sniperGunComp = CreateDefaultSubobject< UStaticMeshComponent>(TEXT("SniperGunComp"));    // 등록
 	sniperGunComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    // 5-메시의 자식, 10- 소켓붙이기
 
@@ -90,6 +90,41 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 		sniperGunComp->SetRelativeRotation(FRotator(0, 90, 0));     // 10 회전
 		sniperGunComp->SetRelativeScale3D(FVector(0.15f));   // 총 스케일 
 	}
+
+
+	// 스나이퍼ui  Widget 블루프린트 클래스 가져오기
+	ConstructorHelpers::FClassFinder<UUserWidget> _tempsniperUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_SniperUI.WBP_SniperUI_C'"));
+	if (_tempsniperUI.Succeeded())
+	{
+		sniperUIFactory = _tempsniperUI.Class;
+	}
+
+
+	// crosshair Widget 블루프린트 클래스 가져오기
+	ConstructorHelpers::FClassFinder<UUserWidget> tempUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Crosshair.WBP_Crosshair_C'"));
+	if (tempUI.Succeeded())
+	{
+		crosshairUIFactory = tempUI.Class;
+	}
+
+
+	//  총알 블루프린트 클래스 가져오기
+	ConstructorHelpers::FClassFinder<ABullet> tempbulletFactory(TEXT("Blueprint'/Game/Wise/Blueprints/BP_Bullet.BP_Bullet_C'"));
+	if (tempbulletFactory.Succeeded())
+	{
+		bulletFactory = tempbulletFactory.Class;
+	}
+
+	// 총파편 파티클 가져오기
+	//UParticleSystem* bulletEffectFactory
+	//
+	ConstructorHelpers::FObjectFinder<UParticleSystem> tempEffectFactory(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_BulletEffect.P_BulletEffect'"));
+	if (tempEffectFactory.Succeeded())
+	{
+		bulletEffectFactory = tempEffectFactory.Object;
+	}
+
+
 }
 
 
@@ -100,13 +135,13 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 void ATPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
 	
 	ChangeToSniperGun();  // 5-  스나이퍼건을 기본총으로
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 6-2 스나이퍼 ui 위젯 인스턴스 생성
+
 	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);   // 6-5 일반 조준 ui 크로스헤어 인스턴스를 생성한다 
-	_crosshairUI->AddToViewport();       //  일반조준 UI 등록
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 10- 최초는 걷기로 한다 
+	
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 10- 최초는 걷기로 한다
 
 	HP = initialHP;
 		
