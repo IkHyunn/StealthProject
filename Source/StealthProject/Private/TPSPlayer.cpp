@@ -16,6 +16,7 @@
 #include "IH_Enemy.h"
 #include "EnemyFSM.h"
 #include "../StealthProjectGameModeBase.h"
+#include <GameFramework/CharacterMovementComponent.h>    // 10- getcharacter 하려면
 
 
 
@@ -105,6 +106,7 @@ void ATPSPlayer::BeginPlay()
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 6-2 스나이퍼 ui 위젯 인스턴스 생성
 	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);   // 6-5 일반 조준 ui 크로스헤어 인스턴스를 생성한다 
 	_crosshairUI->AddToViewport();       //  일반조준 UI 등록
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 10- 최초는 걷기로 한다 
 
 	HP = initialHP;
 		
@@ -141,6 +143,9 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToSniperGun);   // 5- 스나이퍼건
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    //6- 스나이퍼 pressed
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    //6- 스나이퍼 Released
+	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); //10-
+	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &ATPSPlayer::InputRun);   
+
 
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &ATPSPlayer::InputAttack);  // 공격
 	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &ATPSPlayer::InputAssasinate);  // 암살
@@ -174,7 +179,7 @@ void ATPSPlayer::Move()         // 무브 함수로 빼기
 
 	// 가는 방향으로 바라보기-
 	direction = FTransform(GetControlRotation()).TransformVector(direction);   // 캐릭터 무브먼트 컴포넌트의 활용, walkspeed 필요없음
-			 // 로테이션값을 받아와 direction을 바꾸겟다 = 이동방향을 컨트롤방향 기준으로 변환한다, 
+			 // 로테이션값을 받아와 디렉션을 바꾸겟다 = 이동방향을 컨트롤방향 기준으로 변환한다, 
 				//이동  P = P0 + vt
 				//FVector P0 = GetActorLocation();
 				//FVector vt = direction * walkSpeed * DeltaTime;
@@ -185,6 +190,20 @@ void ATPSPlayer::Move()         // 무브 함수로 빼기
 	direction = FVector::ZeroVector;   // 방향 제로 세팅   ????
 }
 
+//  UCharacterMovementComponent: get 으로 가져오려면 무브먼트컴포넌트 를
+void ATPSPlayer::InputRun()
+{
+	auto movement = GetCharacterMovement();
+
+	if (movement->MaxWalkSpeed > walkSpeed)
+	{
+		movement->MaxWalkSpeed = walkSpeed;
+	}
+	else
+	{
+		movement->MaxWalkSpeed = runSpeed;
+	}
+}
 
 
 void ATPSPlayer::InputFire()   // 3- 발사 

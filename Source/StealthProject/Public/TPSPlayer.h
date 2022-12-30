@@ -70,6 +70,12 @@ public:
 	TSubclassOf<class UUserWidget> crosshairUIFactory;
 	class UUserWidget* _crosshairUI;                     // 크로스헤어 인스턴스
 
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10-걷기 속도
+	float walkSpeed = 375;                     
+	
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10- 달리기 속도
+	float runSpeed = 600;
+
 	UPROPERTY(EditAnywhere)
 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
 
@@ -93,6 +99,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Health)
 		void OnGameOver();  // GameOver 이벤트
 
+
+
 	
 	// 함수 선언부 ---------------------------------------------------------------------------
 
@@ -104,6 +112,7 @@ public:
 	void InputJump();   // 1- 점프
 	void Move();      //. 1- 무브
 	void InputFire();   //  3- 발사
+	void InputRun();   // 10- 달리기
 
 	void InputAttack(); // 공격
 	void InputAssasinate();  // 암살
