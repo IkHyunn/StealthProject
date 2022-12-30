@@ -57,26 +57,30 @@ public:
 	void SniperAim();     //
 	bool bSniperAim = false;     // 6-1 스나이퍼 조준( press 인지 release 인지) 저장
 
-	UPROPERTY(EditDefaultsOnly, Category = SniperUI)    //  6-2 스나이퍼 UI 위젯공장
-	TSubclassOf<class UUserWidget> sniperUIFactory;      // UI팩토리    ????
+	UPROPERTY(EditDefaultsOnly, Category = SniperUI)    //  6-2 스나이퍼 UI 위젯을 담을 변수
+	TSubclassOf<class UUserWidget> sniperUIFactory;     
 
 	UPROPERTY()
-	class UUserWidget* _sniperUI;     // 스나이퍼 ui 위젯 인스턴스
+	class UUserWidget* _sniperUI;    // 스나이퍼 ui 위젯 인스턴스
 
-	UPROPERTY(EditAnywhere, Category = BulletEffect)    // 6-3 총알 파편효과 공장
+	UPROPERTY(EditAnywhere, Category = BulletEffect)   // 6-3 총알 파편효과 공장
 	class UParticleSystem* bulletEffectFactory;  
 
-	UPROPERTY(EditDefaultsOnly, Category = SniperUI)    //  6-4 일반 조준 크로스헤어UI 속성 추가
+	UPROPERTY(EditDefaultsOnly, Category = SniperUI)   //  6-4 일반 조준 크로스헤어UI 속성 추가
 	TSubclassOf<class UUserWidget> crosshairUIFactory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UUserWidget* _crosshairUI;                     // 크로스헤어 인스턴스
+	class UUserWidget* _crosshairUI;     // 크로스헤어 인스턴스
 		
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10-걷기 속도
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 10-걷기 속도
 	float walkSpeed = 200;                 
 	
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10- 달리기 속도
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 10- 달리기 속도
 	float runSpeed = 600;
+
+	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     //카메라세이크 블루프린트를 저장할 변수
+	TSubclassOf<class UCameraShakeBase> cameraShake;
+
 
 	UPROPERTY(EditAnywhere)
 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수

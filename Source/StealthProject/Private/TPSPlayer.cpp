@@ -18,6 +18,7 @@
 #include "../StealthProjectGameModeBase.h"
 #include <GameFramework/CharacterMovementComponent.h>    // 10- getcharacter 하려면
 #include <Particles/ParticleSystem.h>
+#include "PlayerAnim.h"
 
 
 
@@ -280,6 +281,15 @@ void ATPSPlayer::InputFire()   // 3- 발사
 			}
 		}
 	}
+
+	// 공격 애니메이션 재생
+	auto anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());
+	anim->PlayAttackAnim();
+
+	// 카메라 세이크 재생
+	auto controller = GetWorld()->GetFirstPlayerController();
+	controller->PlayerCameraManager->StartCameraShake(cameraShake);
+
 }
 
 void ATPSPlayer::ChangeToGrenadeGun()    // 5- 그레나데건으로

@@ -34,3 +34,8 @@ if (player)    //소유폰 얻어오기 성공햇을 때
 	isInAir = movement->IsFalling();    // 플레이어가 현재 공중에 있는지 여부를 기억하고 싶다. 참 거짓 값
 	}
 }
+ // 공격 애니메이션 몽타주 재생 함수 구현
+void UPlayerAnim::PlayAttackAnim()
+{
+	Montage_Play(attackAnimMontage);
+}
