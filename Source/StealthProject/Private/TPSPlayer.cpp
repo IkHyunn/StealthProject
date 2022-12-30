@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 // 단축키 alt + o
 
 
@@ -16,7 +15,7 @@
 #include "IH_Enemy.h"
 #include "EnemyFSM.h"
 #include "../StealthProjectGameModeBase.h"
-#include <GameFramework/CharacterMovementComponent.h>    // 10- getcharacter 하려면
+#include <GameFramework/CharacterMovementComponent.h>    // 10-
 #include <Particles/ParticleSystem.h>
 #include "PlayerAnim.h"
 
@@ -31,22 +30,18 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 
 	//  1-스켈레탈메쉬 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempMesh(TEXT("SkeletalMesh'/Game/Wise/Character/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin'"));
-
-	// 1-성공이면 위치,회전값 고정
-	if (TempMesh.Succeeded())    // 
+	if (TempMesh.Succeeded())  
 	{
 		GetMesh()->SetSkeletalMesh(TempMesh.Object); //GetMesh 함수를 이용하여 Mesh 컴포넌트를 가져와 SetSkeletalMesh 함수를 호출.
 
-		GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -90), FRotator(0, -90, 0));  //메시컴포넌트 위치, 회전값 설정
-
+		GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -90), FRotator(0, -90, 0));  //위치, 회전값 
 	}
-	// 테스트용
+
 	//  1-스프링암 
 	springArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));  //서브오브젝트 팩토리함수를 이용하여 <  > 인스턴스를 생성하여 변수에 저장
-																						 // 변수 =     TEXT("고유이름")	
 	springArmComp->SetupAttachment(RootComponent);      // 루트의 자식으로
-	springArmComp->SetRelativeLocation(FVector(0, 70, 90));    // 오른쪽 위에서  위치 (변수)
-	springArmComp->TargetArmLength = 400;         // 암 길이= 400  (변수)
+	springArmComp->SetRelativeLocation(FVector(0, 70, 90));    // 위치
+	springArmComp->TargetArmLength = 400;         // 암 길이
 
 
 	//  1-이동
@@ -93,7 +88,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 	}
 
 
-	// 스나이퍼ui  Widget 블루프린트 클래스 가져오기
+	// 스나이퍼ui 위젯 블루프린트 클래스 가져오기
 	ConstructorHelpers::FClassFinder<UUserWidget> _tempsniperUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_SniperUI.WBP_SniperUI_C'"));
 	if (_tempsniperUI.Succeeded())
 	{
@@ -101,7 +96,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 	}
 
 
-	// crosshair Widget 블루프린트 클래스 가져오기
+	// 크로스헤어 위젯 블루프린트 클래스 가져오기
 	ConstructorHelpers::FClassFinder<UUserWidget> tempUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Crosshair.WBP_Crosshair_C'"));
 	if (tempUI.Succeeded())
 	{
@@ -116,15 +111,30 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 		bulletFactory = tempbulletFactory.Class;
 	}
 
-	// 총파편 파티클 가져오기
-	//UParticleSystem* bulletEffectFactory
-	//
+	// 총파편 파티클 오브젝트 가져오기
 	ConstructorHelpers::FObjectFinder<UParticleSystem> tempEffectFactory(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_BulletEffect.P_BulletEffect'"));
 	if (tempEffectFactory.Succeeded())
 	{
 		bulletEffectFactory = tempEffectFactory.Object;
 	}
 
+	//UPROPERTY(EditDefaultsOnly, Category = CameraMotion)     //카메라세이크 블루프린트를 저장할 변수
+	//	TSubclassOf<class UCameraShakeBase> cameraShake;
+
+	// 카메라 쉐이크 블루프린트 가져오기
+	ConstructorHelpers::FClassFinder<UCameraShakeBase> tempShakeBase(TEXT("Blueprint'/Game/Wise/Blueprints/BP_CamerShake.BP_CamerShake_C'"));
+	if (tempShakeBase.Succeeded())
+	{
+		cameraShake = tempShakeBase.Class;
+	}
+
+
+	// 총 사운드 오브젝트 가져오기
+	ConstructorHelpers::FObjectFinder<USoundBase>tempSound(TEXT("SoundWave'/Game/StarterContent/Audio/Explosion01.Explosion01'"));
+	if (tempSound.Succeeded())
+	{
+		bulletSound = tempSound.Object;
+	}
 
 }
 
@@ -137,12 +147,10 @@ void ATPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ChangeToSniperGun();  // 5-  스나이퍼건을 기본총으로
-	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 6-2 스나이퍼 ui 위젯 인스턴스 생성
-
-	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);   // 6-5 일반 조준 ui 크로스헤어 인스턴스를 생성한다 
-	
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 10- 최초는 걷기로 한다
+	ChangeToSniperGun();  // 스나이퍼건을 기본총으로
+	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 스나이퍼ui위젯생성
+	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어위젯생성
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 시작은 걷기로
 
 	HP = initialHP;
 		
@@ -152,9 +160,9 @@ void ATPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	Move();    // 무브 호출 -
+	Move();   // 이동
 
-	currentTime += DeltaTime;  // 현재 시간에 DeltaTime 누적
+	currentTime += DeltaTime;   
 	
 }
 
@@ -168,18 +176,18 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent); // 실행될 때 딱 한번 호출된다- 함수와 입력키와 연결(바인딩)해 준다
 
 	// 2-1. 바인딩 
-	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ATPSPlayer::Turn);  //인풋컴포넌트야   내게 있는  함수주소(Turn) 를 넘겨주어 처리하도록 연결해 준다
+	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ATPSPlayer::Turn);  
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ATPSPlayer::LookUp);
 	PlayerInputComponent->BindAxis(TEXT("Horizontal"), this, &ATPSPlayer::InputHorizontal);
 	PlayerInputComponent->BindAxis(TEXT("Vertical"), this, &ATPSPlayer::InputVertical);
 
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ATPSPlayer::InputJump);   // 점프 
-	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 3- 발사 
-	PlayerInputComponent->BindAction(TEXT("GrenadeGun"), IE_Pressed, this, &ATPSPlayer::ChangeToGrenadeGun);   // 5- 그레나데건
-	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToSniperGun);   // 5- 스나이퍼건
-	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    //6- 스나이퍼 pressed
-	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    //6- 스나이퍼 Released
-	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); //10-
+	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 발사 
+	PlayerInputComponent->BindAction(TEXT("GrenadeGun"), IE_Pressed, this, &ATPSPlayer::ChangeToGrenadeGun);   // 그레나데건으로
+	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToSniperGun);   // 스나이퍼건으로
+	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    // 스나이퍼 
+	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    // 스나이퍼 
+	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); // 달리기
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &ATPSPlayer::InputRun);   
 
 
@@ -187,32 +195,34 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &ATPSPlayer::InputAssasinate);  // 암살
 }
 
-	// 2-1 좌우회전 turn 입력 함수 내용 - yaw 회전 ok
-void ATPSPlayer::Turn(float value)
+	
+void ATPSPlayer::Turn(float value)   // 좌우회전
 {
 	AddControllerYawInput(value);  
 }
-
-	// 2-1 상하회전 LookUp  입력 함수 내용 - pitch ok
-void ATPSPlayer::LookUp(float value)
+	
+void ATPSPlayer::LookUp(float value)    // 위아래 회전
 {
 	AddControllerPitchInput(value); 
 }
+
 void ATPSPlayer::InputHorizontal(float value)  // 좌우이동 함수내용
 {
 	direction.Y = value;
 }
+
 void ATPSPlayer::InputVertical(float value)     // 상하이동 함수내용
 {
 	direction.X = value;
 }
-void ATPSPlayer::InputJump()      // 점프 함수 내용- () !!!
-{
-	Jump();     // 점프 함수 내용: ACharacter 함수에 이미 점프함수가 잇어 호출만 하면 됨
-}
-void ATPSPlayer::Move()         // 무브 함수로 빼기
-{
 
+void ATPSPlayer::InputJump()     // 점프
+{
+	Jump();     
+}
+
+void ATPSPlayer::Move()         // 무브 
+{
 	// 가는 방향으로 바라보기-
 	direction = FTransform(GetControlRotation()).TransformVector(direction);   // 캐릭터 무브먼트 컴포넌트의 활용, walkspeed 필요없음
 			 // 로테이션값을 받아와 디렉션을 바꾸겟다 = 이동방향을 컨트롤방향 기준으로 변환한다, 
@@ -223,33 +233,32 @@ void ATPSPlayer::Move()         // 무브 함수로 빼기
 				//SetActorLocation(P);
 
 	AddMovementInput(direction);
-	direction = FVector::ZeroVector;   // 방향 제로 세팅   ????
+	direction = FVector::ZeroVector;   // 방향 제로 ????
 }
 
-//  UCharacterMovementComponent: get 으로 가져오려면 무브먼트컴포넌트 를
-void ATPSPlayer::InputRun()
+void ATPSPlayer::InputRun()        // 달리기
 {
 	auto movement = GetCharacterMovement();
 
 	if (movement->MaxWalkSpeed > walkSpeed)
 	{
-		movement->MaxWalkSpeed = walkSpeed;
+		movement->MaxWalkSpeed = walkSpeed;   //걷는 속도
 	}
 	else
 	{
-		movement->MaxWalkSpeed = runSpeed;
+		movement->MaxWalkSpeed = runSpeed;     //달리는 속도
 	}
 }
 
 
-void ATPSPlayer::InputFire()   // 3- 발사 
+void ATPSPlayer::InputFire()   // 발사 
 {
-	if (bUsingGrenadeGun)  // 6- 유탄총이면 
+	if (bUsingGrenadeGun)  // 유탄총
 	{                // 총알발사스폰하고
 		FTransform firePosition = gunMeshComp->GetSocketTransform(TEXT("FirePosition"));    //3-총구위치 :
 		GetWorld()->SpawnActor<ABullet>(bulletFactory, firePosition);  // 3-스폰 : 
 	}
-	else     // 스나이퍼건 사용하면
+	else     // 스나이퍼건
 	{
 		FVector startPos = tpsCamComp->GetComponentLocation();  // 라인트레이스의 시작 위치
 		FVector endPos = tpsCamComp->GetComponentLocation() + tpsCamComp->GetForwardVector() * 5000;  // 라인트레이스의 종료위치
@@ -282,14 +291,15 @@ void ATPSPlayer::InputFire()   // 3- 발사
 		}
 	}
 
-	// 공격 애니메이션 재생
-	auto anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());
+	
+	auto anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());   // 공격 애니메이션 재생
 	anim->PlayAttackAnim();
 
-	// 카메라 세이크 재생
-	auto controller = GetWorld()->GetFirstPlayerController();
+	
+	auto controller = GetWorld()->GetFirstPlayerController();   // 카메라 세이크 재생
 	controller->PlayerCameraManager->StartCameraShake(cameraShake);
 
+	UGameplayStatics::PlaySound2D(GetWorld(),bulletSound);   // 발사 사운드 재생
 }
 
 void ATPSPlayer::ChangeToGrenadeGun()    // 5- 그레나데건으로

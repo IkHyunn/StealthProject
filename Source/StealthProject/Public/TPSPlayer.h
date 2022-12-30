@@ -81,6 +81,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     //카메라세이크 블루프린트를 저장할 변수
 	TSubclassOf<class UCameraShakeBase> cameraShake;
 
+	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
+	class USoundBase* bulletSound;
 
 	UPROPERTY(EditAnywhere)
 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
