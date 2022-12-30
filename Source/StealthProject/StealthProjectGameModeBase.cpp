@@ -5,6 +5,8 @@
 #include "IH_CountUI.h"
 #include "IH_GameOverUI.h"
 #include "IH_MainMenu.h"
+#include <Kismet/KismetSystemLibrary.h>
+#include <Kismet/GameplayStatics.h>
 
 AStealthProjectGameModeBase::AStealthProjectGameModeBase()
 {
@@ -51,4 +53,11 @@ void AStealthProjectGameModeBase::ShowGameOverUI()
 {
 	gameoverUI = CreateWidget<UIH_GameOverUI>(GetWorld(), gameoverWidget);
 	gameoverUI->AddToViewport();
+}
+
+void AStealthProjectGameModeBase::ShowMainMenuUI()
+{
+	mainMenuUI->AddToViewport();
+	GetWorld(), GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }

@@ -71,7 +71,7 @@ public:
 	class UUserWidget* _crosshairUI;                     // 크로스헤어 인스턴스
 
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10-걷기 속도
-	float walkSpeed = 375;                     
+	float walkSpeed = 200;                     
 	
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)           // 10- 달리기 속도
 	float runSpeed = 600;
