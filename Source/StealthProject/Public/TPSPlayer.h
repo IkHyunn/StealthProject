@@ -36,9 +36,9 @@ public:
 	UPROPERTY(VisibleAnywhere,  BlueprintReadOnly, Category = Camera)   // 6- 스나이퍼 줌인을 위한 블프READONLY
 	class UCameraComponent* tpsCamComp;      //
 
-	// 2- 총 메시
-	UPROPERTY(VisibleAnywhere, Category = GunMesh)  //
-	class USkeletalMeshComponent* gunMeshComp;
+// 	// 2- 총 메시
+// 	UPROPERTY(VisibleAnywhere, Category = GunMesh)  //
+// 	class USkeletalMeshComponent* gunMeshComp;
 
 	// 3- 총알공장
 	UPROPERTY(EditDefaultsOnly, Category=BulletFactory)    // 
@@ -46,12 +46,12 @@ public:
 
 	// 4- 스나이퍼 총 메시
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  //
-	class UStaticMeshComponent* sniperGunComp;
+	class USkeletalMeshComponent* pistolComp;
 
 	// 5- 현재 유탄총을 사용하고 있는지 
-	bool bUsingGrenadeGun = true;   // bool 변수
-	void ChangeToGrenadeGun();    // 그레나데건으로
-	void ChangeToSniperGun();     // 스나이퍼건으로
+	bool bNoEquipped = true;   // bool 변수
+	void ChangeToNoEquipped();    // 그레나데건으로
+	void ChangeToPistol();     // 스나이퍼건으로
 
 	// 6- 스나이펴 조준
 	void SniperAim();     //
@@ -73,13 +73,25 @@ public:
 	class UUserWidget* _crosshairUI;     // 크로스헤어 인스턴스
 		
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 10-걷기 속도
-	float walkSpeed = 200;                 
+	float walkSpeed = 375;                 
 	
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 10- 달리기 속도
 	float runSpeed = 600;
 
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)
+	float crouchSpeed = 200;
+
+	UPROPERTY()
+	class UPlayerAnim* anim;
+
 	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     //카메라세이크 블루프린트를 저장할 변수
 	TSubclassOf<class UCameraShakeBase> cameraShake;
+
+	UPROPERTY(EditAnywhere)
+	int32 currentBullet = 0;
+
+	UPROPERTY(EditAnywhere)
+	bool bgetGun = false;
 
 	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
 	class USoundBase* bulletSound;
@@ -101,13 +113,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Health)
 		int32 initialHP = 5;  // 최초 HP
 
-	UFUNCTION(BlueprintCallable, Category = Health)
-		void OnHitEvent();  // 피격 이벤트
-
-	UFUNCTION(BlueprintCallable, Category = Health)
-		void OnGameOver();  // GameOver 이벤트
-
-
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* compBox;
 
 	
 	// 함수 선언부 ---------------------------------------------------------------------------
@@ -121,10 +128,17 @@ public:
 	void Move();      //. 1- 무브
 	void InputFire();   //  3- 발사
 	void InputRun();   // 10- 달리기
+	void InputCrouch(); // 숙이기
 
-	void InputAttack(); // 공격
+//	void InputAttack(); // 공격
 	void InputAssasinate();  // 암살
 
-		 
+	UFUNCTION(BlueprintCallable, Category = Health)
+		void OnHitEvent();  // 피격 이벤트
 
+	UFUNCTION(BlueprintCallable, Category = Health)
+		void OnGameOver();  // GameOver 이벤트
+		 
+	UFUNCTION()
+		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

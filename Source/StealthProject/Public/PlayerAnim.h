@@ -28,11 +28,34 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isInAir = false;     // 플레이어가 공중에 있는지를 기억할 변수를 선언
 
-	UPROPERTY(EditDefaultsOnly,Category = PlayerAnim)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isGunEquipped = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isCrouched = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 	class UAnimMontage* attackAnimMontage;    // 재생할 공격 애니메이션 몽타주
 
 	void PlayAttackAnim();    // 공격 애니메이션 재생 함수
 
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+	class UAnimMontage* assasinateAnimMontage;
 
+	void PlayAssasinateAnim();
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+	class UAnimMontage* punchAnimMontage;
+
+	void PlayPunchAnim();
+
+	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
+	void OnAttackAnimation();
+
+	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
+	void EndAttackAnimation();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isPlayerAttack = false;
 
 };

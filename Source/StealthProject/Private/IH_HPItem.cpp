@@ -3,6 +3,7 @@
 
 #include "IH_HPItem.h"
 #include <Components/BoxComponent.h>
+#include "TPSPlayer.h"
 
 // Sets default values
 AIH_HPItem::AIH_HPItem()
@@ -17,8 +18,7 @@ AIH_HPItem::AIH_HPItem()
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 	compMesh->SetupAttachment(compBox);
 	compMesh->SetRelativeLocation(FVector(0, 0, -30));
-
-//	compMesh->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
+	compMesh->SetRelativeScale3D(FVector(0.5));
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_NarrowCapsule.Shape_NarrowCapsule'"));
 	if (tempMesh.Succeeded())
@@ -31,7 +31,8 @@ AIH_HPItem::AIH_HPItem()
 void AIH_HPItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	compMesh->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
 }
 
 // Called every frame
@@ -41,12 +42,15 @@ void AIH_HPItem::Tick(float DeltaTime)
 
 }
 
-//void AIH_HPItem::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-// 	character = Cast<ATPSPlayer>(OtherActor);
-// 
-// 	if (character != nullptr)
-// 	{
-// 		UE_LOG(LogTemp, Warning, TEXT("Character Overlapped"));
-// 	}
-//}
+void AIH_HPItem::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		character->HP+=5;
+		UE_LOG(LogTemp, Warning, TEXT("Current HP : %d"), character->HP);
+
+		Destroy();
+	}
+}

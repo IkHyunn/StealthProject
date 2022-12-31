@@ -28,8 +28,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category=FSMEvent)
 	void OnEndAttackAnimation();
 
-// 	UFUNCTION(BlueprintCallable, Category=FSMEvent)
-// 	void OnAttackAnimation();
+	UFUNCTION(BlueprintCallable, Category=FSMEvent)
+	void OnAttackAnimation();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)
 	void PlayDamageAnim(FName sectionName);  // 피격 애니메이션 재생 함수

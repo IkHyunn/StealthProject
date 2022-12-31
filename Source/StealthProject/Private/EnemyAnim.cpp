@@ -6,6 +6,11 @@
 #include "TPSPlayer.h"
 
 
+void UEnemyAnim::OnAttackAnimation()
+{
+	bAttackPlay = true;
+}
+
 void UEnemyAnim::OnEndAttackAnimation()
 {
 	bAttackPlay = false;

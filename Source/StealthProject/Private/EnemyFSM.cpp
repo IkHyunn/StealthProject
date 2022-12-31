@@ -221,7 +221,7 @@ void UEnemyFSM::ChaseState()
 		mState = EEnemyState::Attack;	// 2. 공격 상태로 전환한다.
 
 		anim->animState = mState;	// 애니메이션 상태 동기화
-//		anim->bAttackPlay = false;
+		anim->bAttackPlay = false;
 		currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
 	}
 }
@@ -234,7 +234,6 @@ void UEnemyFSM::AttackState()
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("ATTACK!"));	// 3. 공격한다.
 		currentTime = 0;	// 4. 경과 시간을 초기화.
-
 		anim->bAttackPlay = true;
 		//target->OnHitEvent();
 		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);

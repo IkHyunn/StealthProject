@@ -16,8 +16,6 @@ AClear::AClear()
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Clear"));
 	compBox->SetBoxExtent(FVector(250, 20, 150));
-
-	compBox->OnComponentBeginOverlap.AddDynamic(this, &AClear::OnOverlap);
 }
 
 // Called when the game starts or when spawned
@@ -25,6 +23,7 @@ void AClear::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	compBox->OnComponentBeginOverlap.AddDynamic(this, &AClear::OnOverlap);
 }
 
 // Called every frame
@@ -50,10 +49,7 @@ void AClear::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherAc
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서가 보인다.
 		}
 	}
-	else  // 아니면
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Not Yet!"));  // 클리어 되지 않는다.
-	}
+	else return;
 }
 
 void AClear::ShowGameClearUI()

@@ -18,6 +18,7 @@
 #include <GameFramework/CharacterMovementComponent.h>    // 10-
 #include <Particles/ParticleSystem.h>
 #include "PlayerAnim.h"
+#include <Components/BoxComponent.h>
 
 
 
@@ -58,33 +59,32 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 	// 1-더블 점프
 	JumpMaxCount = 2;
 
-	// 2-총 메시 
-	gunMeshComp = CreateDefaultSubobject< USkeletalMeshComponent>(TEXT("GunMeshComp"));    // 등록
-	gunMeshComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    //스켈레탈 메시의 자식    10- 소켓붙이기
-
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempGunMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/FPWeapon/Mesh/SK_FPGun.SK_FPGun'")); //  데이터 로드 //  TempGunMesh 변수선언
-	if (TempGunMesh.Succeeded())  // 만약 성공하면
-	{
-		gunMeshComp->SetSkeletalMesh(TempGunMesh.Object);  // 스켈레탈메시 데이터 할당
-		gunMeshComp->SetRelativeLocation(FVector(-14, 52, 13));    // 총 위치   10- 소켓붙이기로 위치변경
-		gunMeshComp->SetRelativeRotation(FRotator(0, 90, 0));    // 회전  10- 소켓붙이기
-	}
+// 	// 2-총 메시 
+// 	gunMeshComp = CreateDefaultSubobject< USkeletalMeshComponent>(TEXT("GunMeshComp"));    // 등록
+// 	gunMeshComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    //스켈레탈 메시의 자식    10- 소켓붙이기
+// 
+// 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempGunMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/FPWeapon/Mesh/SK_FPGun.SK_FPGun'")); //  데이터 로드 //  TempGunMesh 변수선언
+// 	if (TempGunMesh.Succeeded())  // 만약 성공하면
+// 	{
+// 		gunMeshComp->SetSkeletalMesh(TempGunMesh.Object);  // 스켈레탈메시 데이터 할당
+// 		gunMeshComp->SetRelativeLocation(FVector(-14, 52, 13));    // 총 위치   10- 소켓붙이기로 위치변경
+// 		gunMeshComp->SetRelativeRotation(FRotator(0, 90, 0));    // 회전  10- 소켓붙이기
+// 	}
 		
 	
 
 	//5- 스나이퍼 건 메시
 
-	sniperGunComp = CreateDefaultSubobject< UStaticMeshComponent>(TEXT("SniperGunComp"));    // 등록
-	sniperGunComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    // 5-메시의 자식, 10- 소켓붙이기
+	pistolComp = CreateDefaultSubobject< USkeletalMeshComponent>(TEXT("SniperGunComp"));    // 등록
+	pistolComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    // 5-메시의 자식, 10- 소켓붙이기
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> TempSniperMesh(TEXT("StaticMesh'/Game/Wise/Resources/SniperGun/sniper1.sniper1'")); //  데이터 로드 //  TempSniperMesh 구조체(ConstructorHelpers)변수선언
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempPistolMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Pistols_A.Pistols_A'")); //  데이터 로드 //  TempSniperMesh 구조체(ConstructorHelpers)변수선언
 	
-	if (TempSniperMesh.Succeeded())  // 만약 성공하면
+	if (TempPistolMesh.Succeeded())  // 만약 성공하면
 	{
-		sniperGunComp->SetStaticMesh(TempSniperMesh.Object);  // 스태틱메시 데이터 할당
-		sniperGunComp->SetRelativeLocation(FVector(-12, 75, 13));   // 10 스나이퍼건 소켓에 붙이기 위치바꾸기
-		sniperGunComp->SetRelativeRotation(FRotator(0, 90, 0));     // 10 회전
-		sniperGunComp->SetRelativeScale3D(FVector(0.15f));   // 총 스케일 
+		pistolComp->SetSkeletalMesh(TempPistolMesh.Object);  // 스태틱메시 데이터 할당
+		pistolComp->SetRelativeLocation(FVector(-12, 75, 13));   // 10 스나이퍼건 소켓에 붙이기 위치바꾸기
+		pistolComp->SetRelativeRotation(FRotator(0, 90, 0));     // 10 회전
 	}
 
 
@@ -136,6 +136,8 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 		bulletSound = tempSound.Object;
 	}
 
+	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	compBox ->SetupAttachment(GetMesh(), TEXT("hand_Box_rSocket"));
 }
 
 
@@ -147,13 +149,16 @@ void ATPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ChangeToSniperGun();  // 스나이퍼건을 기본총으로
+	pistolComp->SetVisibility(false);
+//	ChangeToNoEquipped();  // 스나이퍼건을 기본총으로
+	anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());   // 애니메이션 블루프린트 저장
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 시작은 걷기로
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 스나이퍼ui위젯생성
 	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어위젯생성
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;           // 시작은 걷기로
+
+	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::OnOverlap);
 
 	HP = initialHP;
-		
 }
 
 void ATPSPlayer::Tick(float DeltaTime)
@@ -183,15 +188,17 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ATPSPlayer::InputJump);   // 점프 
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 발사 
-	PlayerInputComponent->BindAction(TEXT("GrenadeGun"), IE_Pressed, this, &ATPSPlayer::ChangeToGrenadeGun);   // 그레나데건으로
-	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToSniperGun);   // 스나이퍼건으로
+	PlayerInputComponent->BindAction(TEXT("NoEquipped"), IE_Pressed, this, &ATPSPlayer::ChangeToNoEquipped);   // 그레나데건으로
+	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToPistol);   // 스나이퍼건으로
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    // 스나이퍼 
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    // 스나이퍼 
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); // 달리기
-	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &ATPSPlayer::InputRun);   
+	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &ATPSPlayer::InputRun);   // 걷기
+	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ATPSPlayer::InputCrouch); // 숙이기
+	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Released, this, &ATPSPlayer::InputCrouch);
 
 
-	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &ATPSPlayer::InputAttack);  // 공격
+//	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &ATPSPlayer::InputAttack);  // 공격
 	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &ATPSPlayer::InputAssasinate);  // 암살
 }
 
@@ -239,86 +246,132 @@ void ATPSPlayer::Move()         // 무브
 void ATPSPlayer::InputRun()        // 달리기
 {
 	auto movement = GetCharacterMovement();
-
-	if (movement->MaxWalkSpeed > walkSpeed)
+	if (bNoEquipped == true)
 	{
-		movement->MaxWalkSpeed = walkSpeed;   //걷는 속도
+		if (movement->MaxWalkSpeed > walkSpeed)
+		{
+			movement->MaxWalkSpeed = walkSpeed;   //걷는 속도
+		}
+		else
+		{
+			movement->MaxWalkSpeed = runSpeed;     //달리는 속도
+		}
 	}
-	else
-	{
-		movement->MaxWalkSpeed = runSpeed;     //달리는 속도
-	}
+	else return;
 }
 
+void ATPSPlayer::InputCrouch()
+{
+	auto movement = GetCharacterMovement();
+	if (bNoEquipped == true)
+	{
+		if (anim->isCrouched == false)
+		{
+			movement->MaxWalkSpeed = crouchSpeed;
+			anim->isCrouched = true;
+		}
+		else
+		{
+			movement->MaxWalkSpeed = walkSpeed;
+			anim->isCrouched = false;
+		}
+	}
+	else return;
+}
 
 void ATPSPlayer::InputFire()   // 발사 
 {
-	if (bUsingGrenadeGun)  // 유탄총
-	{                // 총알발사스폰하고
-		FTransform firePosition = gunMeshComp->GetSocketTransform(TEXT("FirePosition"));    //3-총구위치 :
-		GetWorld()->SpawnActor<ABullet>(bulletFactory, firePosition);  // 3-스폰 : 
+	if (bNoEquipped)  // 비무장 상태면
+	{              
+		if (currentTime > attackDelayTime)
+		{
+			anim->PlayPunchAnim();
+			currentTime = 0;
+		}
 	}
 	else     // 스나이퍼건
 	{
-		FVector startPos = tpsCamComp->GetComponentLocation();  // 라인트레이스의 시작 위치
-		FVector endPos = tpsCamComp->GetComponentLocation() + tpsCamComp->GetForwardVector() * 5000;  // 라인트레이스의 종료위치
-		FHitResult hitInfo;       // 라인트레이스의 충돌정보를 담을 변수
-		FCollisionQueryParams params;     //  충돌 옵션 설정 변수
-		params.AddIgnoredActor(this);      // 자기 자신(플레이어)는 충돌에서 제외
-		// 채널 필터를 이용한 라인트레이스 충돌 검출(충돌정보,시작위치, 종료위치,검출채널,충돌옵션)해서 충돌이 성공하면 변수에 true값이 들어온다
-		bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
-		// 만약에 라인트레이스가 부딪혔을 때 충돌처리 후 총알 파편효과를 재생한다
-		if (bHit)
+		if (pistolComp->IsVisible() == true)
 		{
-			FTransform bulletTrans;   // 총알파편 효과 트랜스폼
-			bulletTrans.SetLocation(hitInfo.ImpactPoint);     // 부딪힌 위치 할당
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), bulletEffectFactory, bulletTrans);  // 총알파편효과인스턴스 생성
-		
-			
-			auto hitComp = hitInfo.GetComponent();     //6-4 부딪힌 물체의 컴포넌트 변수를 저장한다
-			if (hitComp && hitComp->IsSimulatingPhysics())   //만약 컴포넌트에 물리가 적용되어 있다면
+			if (currentBullet > 0)
 			{
-				FVector force = -hitInfo.ImpactNormal * hitComp->GetMass() * 500000;   // 2.날려버릴 힘과 방향이 필요
-				hitComp->AddForce(force);    //3. 그 방향으로 날려버린다
-			}
+				anim->PlayAttackAnim();  // 공격 애니메이션 재생
 
-			auto enemy = hitInfo.GetActor()->GetDefaultSubobjectByName(TEXT("FSM"));
-			if (enemy)
-			{
-				auto enemyFSM = Cast<UEnemyFSM>(enemy);
-				enemyFSM->OnDamageProcess();
+				auto controller = GetWorld()->GetFirstPlayerController();   // 카메라 세이크 재생
+				controller->PlayerCameraManager->StartCameraShake(cameraShake);
+
+				FVector startPos = tpsCamComp->GetComponentLocation();  // 라인트레이스의 시작 위치
+				FVector endPos = tpsCamComp->GetComponentLocation() + tpsCamComp->GetForwardVector() * 5000;  // 라인트레이스의 종료위치
+				FHitResult hitInfo;       // 라인트레이스의 충돌정보를 담을 변수
+				FCollisionQueryParams params;     //  충돌 옵션 설정 변수
+				params.AddIgnoredActor(this);      // 자기 자신(플레이어)는 충돌에서 제외
+	
+				// 채널 필터를 이용한 라인트레이스 충돌 검출(충돌정보,시작위치, 종료위치,검출채널,충돌옵션)해서 충돌이 성공하면 변수에 true값이 들어온다
+				bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
+
+				// 만약에 라인트레이스가 부딪혔을 때 충돌처리 후 총알 파편효과를 재생한다
+				if (bHit)
+				{
+					FTransform bulletTrans;   // 총알파편 효과 트랜스폼
+					bulletTrans.SetLocation(hitInfo.ImpactPoint);     // 부딪힌 위치 할당
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), bulletEffectFactory, bulletTrans);  // 총알파편효과인스턴스 생성
+
+					auto hitComp = hitInfo.GetComponent();     //6-4 부딪힌 물체의 컴포넌트 변수를 저장한다
+					if (hitComp && hitComp->IsSimulatingPhysics())   //만약 컴포넌트에 물리가 적용되어 있다면
+					{
+						FVector force = -hitInfo.ImpactNormal * hitComp->GetMass() * 500000;   // 2.날려버릴 힘과 방향이 필요
+						hitComp->AddForce(force);    //3. 그 방향으로 날려버린다
+					}
+
+					auto enemy = hitInfo.GetActor()->GetDefaultSubobjectByName(TEXT("FSM"));
+					if (enemy)
+					{
+						auto enemyFSM = Cast<UEnemyFSM>(enemy);
+						enemyFSM->OnDamageProcess();
+					}
+
+					UGameplayStatics::PlaySound2D(GetWorld(), bulletSound);   // 발사 사운드 재생
+					currentBullet--;
+					UE_LOG(LogTemp, Warning, (TEXT("Current Bullet : %d")), currentBullet);
+				}
+				else
+				{
+					UGameplayStatics::PlaySound2D(GetWorld(), bulletSound);   // 발사 사운드 재생
+					currentBullet--;
+					UE_LOG(LogTemp, Warning, (TEXT("Current Bullet : %d")), currentBullet);
+				}
 			}
-		}
+			else
+			{
+				UE_LOG(LogTemp, Warning, (TEXT("Lack Of Bullet")));
+				return;
+			}
 	}
-
-	
-	auto anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());   // 공격 애니메이션 재생
-	anim->PlayAttackAnim();
-
-	
-	auto controller = GetWorld()->GetFirstPlayerController();   // 카메라 세이크 재생
-	controller->PlayerCameraManager->StartCameraShake(cameraShake);
-
-	UGameplayStatics::PlaySound2D(GetWorld(),bulletSound);   // 발사 사운드 재생
+	}
 }
 
-void ATPSPlayer::ChangeToGrenadeGun()    // 5- 그레나데건으로
+void ATPSPlayer::ChangeToNoEquipped()    // 5- 비무장 상태로
 {
-	bUsingGrenadeGun = true;   // 사용중  true
-	sniperGunComp->SetVisibility(false);   //스나이퍼 no
-	gunMeshComp->SetVisibility(true);    // 그레나데 yes
+	_crosshairUI -> RemoveFromParent();
+	pistolComp->SetVisibility(false);   // 권총 no
+	anim->isGunEquipped = false;
+	bNoEquipped = true;
 }
 
-void ATPSPlayer::ChangeToSniperGun()   // 스나이퍼건으로
+void ATPSPlayer::ChangeToPistol()   // 권총으로
 {
-	bUsingGrenadeGun = false;   // 사용중  false
-	sniperGunComp->SetVisibility(true);   //스나이퍼 yes
-	gunMeshComp->SetVisibility(false);    // 그레나데 no
+	if (bgetGun == true)
+	{
+		bNoEquipped = false;
+		anim->isGunEquipped = true;
+		pistolComp->SetVisibility(true);   //권총 yes
+	}
+	else return;
 }
 
 void ATPSPlayer::SniperAim()  // 6- 스나이퍼 입력 눌럿을 때 떼엇을 때
 {
-	if (bUsingGrenadeGun)    // 유탄총 사용중일 때는 종료한다
+	if (bNoEquipped == true)    // 비무장 중일 때는 종료한다
 	{
 		return;
 	}
@@ -342,21 +395,21 @@ void ATPSPlayer::SniperAim()  // 6- 스나이퍼 입력 눌럿을 때 떼엇을 때
 	//  addRange() "UMG" 추가 
 }
 
-void ATPSPlayer::InputAttack()  // 공격하는 함수(마우스 좌클릭)
-{
-	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());  // AIH_Enemy를 찾아서 actor 변수에 넣어둔다.
-	if(actor == nullptr) return;
-
-	AIH_Enemy* enemy = Cast<AIH_Enemy>(actor);  // actor가 AIH_Enemy가 맞으면 enemy 변수에 저장한다.
-	UEnemyFSM* enemyFSM = Cast<UEnemyFSM>(enemy);
-
-	
-	if (currentTime > attackDelayTime)
-	{
-		enemy->fsm->OnDamageProcess();
-		currentTime = 0;
-	}
-}
+// void ATPSPlayer::InputAttack()  // 공격하는 함수(마우스 좌클릭)
+// {
+// 	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());  // AIH_Enemy를 찾아서 actor 변수에 넣어둔다.
+// 	if(actor == nullptr) return;
+// 
+// 	AIH_Enemy* enemy = Cast<AIH_Enemy>(actor);  // actor가 AIH_Enemy가 맞으면 enemy 변수에 저장한다.
+// 	UEnemyFSM* enemyFSM = Cast<UEnemyFSM>(enemy);
+// 
+// 	
+// 	if (currentTime > attackDelayTime)
+// 	{
+// 		enemy->fsm->OnDamageProcess();
+// 		currentTime = 0;
+// 	}
+// }
 
 void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 {
@@ -366,6 +419,7 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 
 	if (isBack == true)
 	{
+		anim->PlayAssasinateAnim();
 		enemy->fsm->OnBackAttack();
 		isBack = false;
 	}
@@ -391,4 +445,21 @@ void ATPSPlayer::OnGameOver()
 	currMode->ShowGameOverUI();  // 게임모드에서 만든 ShowGameOverUI 함수를 호출한다.
 	UGameplayStatics::SetGamePaused(GetWorld(), true);  // 게임을 멈춘다.
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서를 화면에 띄운다.
+}
+
+void ATPSPlayer::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this)
+	{
+		AIH_Enemy* enemy = Cast<AIH_Enemy>(OtherActor);
+
+		if (enemy != nullptr)
+		{
+			if (anim->isPlayerAttack == true)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Punch"));
+				enemy->fsm->OnDamageProcess();
+			}
+		}
+	}
 }
