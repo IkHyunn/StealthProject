@@ -13,7 +13,7 @@ AIH_HPItem::AIH_HPItem()
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	SetRootComponent(compBox);
-	compBox->SetBoxExtent(FVector(40));
+	compBox->SetBoxExtent(FVector(50));
 
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 	compMesh->SetupAttachment(compBox);

@@ -35,7 +35,7 @@ void ADoor::Tick(float DeltaTime)
 
 	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
 	
-	if (currMode->currScore == 1)  // 현재 점수가 일정 이상이 되면
+	if (currMode->currScore == 4)  // 현재 점수가 일정 이상이 되면
 	{
 		compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // compMesh의 Collision 설정이 사라지고
 
@@ -45,7 +45,7 @@ void ADoor::Tick(float DeltaTime)
 
 		SetActorLocation(P);
 
-		if (P.Z < -200.0f)  // Z 위치값이 -200 이하가 되면
+		if (P.Z < -300.0f)  // Z 위치값이 -200 이하가 되면
 		{
 			Destroy();  // 파괴된다.
 		}

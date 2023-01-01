@@ -14,6 +14,7 @@ AIH_Bullet::AIH_Bullet()
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX"));
 	SetRootComponent(compBox);
+	compBox->SetBoxExtent(FVector(50));
 
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PickupBullet"));
 	compMesh->SetupAttachment(compBox);
@@ -48,7 +49,7 @@ void AIH_Bullet::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * O
 
 	if (character != nullptr)
 	{
-		character->currentBullet+=3;
+		character->currentBullet+=plusBullet;
 		UE_LOG(LogTemp, Warning, TEXT("Current Bullet : %d"), character->currentBullet);
 
 		Destroy();

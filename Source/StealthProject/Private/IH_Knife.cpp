@@ -14,6 +14,7 @@ AIH_Knife::AIH_Knife()
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	SetRootComponent(compBox);
+	compBox->SetBoxExtent(FVector(50));
 
 	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));
 	compMesh -> SetupAttachment(compBox);
