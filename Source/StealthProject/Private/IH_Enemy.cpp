@@ -98,7 +98,7 @@ void AIH_Enemy::OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		
 		if (character != nullptr)
 		{
-			if (fsm->anim->bAttackPlay == true)
+			if (fsm->anim->isOnHit == true)
 			{
 			character->OnHitEvent();
 			}

@@ -100,6 +100,7 @@ void UEnemyFSM::IdleState()
 {
 //	UE_LOG(LogTemp, Warning, TEXT("IDLE"));
 	currentTime+=GetWorld()->DeltaTimeSeconds;
+	anim->isOnHit = false;
 //	UE_LOG(LogTemp, Warning, TEXT("%f"), AngleDegree);
 
 	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
@@ -233,19 +234,21 @@ void UEnemyFSM::AttackState()
 	if (currentTime > attackDelayTime)	// 2. 만약 경과 시간이 공격 시간을 넘었다면
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("ATTACK!"));	// 3. 공격한다.
-		currentTime = 0;	// 4. 경과 시간을 초기화.
 		anim->bAttackPlay = true;
+		anim->isOnHit = true;
+		currentTime = 0;	// 4. 경과 시간을 초기화.
 		//target->OnHitEvent();
 		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
 	}
 
-	// 타깃이 공격 범위를 벗어나면 이동상태로 전환
+	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// 1. FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
 																								// Target과 Me 사이의 거리를 구한다.
 	if (distance > attackRange)
 	{
 		mState = EEnemyState::Chase;
 		anim->bAttackPlay = false;
+		anim->isOnHit = false;
 
 		anim->animState = mState;
 	}
@@ -281,13 +284,13 @@ void UEnemyFSM::OnBackAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	HP = 0;
-	anim->bAttackPlay = false;
+	anim->isOnHit = false;
 
 	ai->StopMovement();
 
 	mState = EEnemyState::Die;  // 죽음 상태로 전환
 //	me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 죽음 상태로 전환하면 땅으로 꺼질 수 있도록 캡슐 충돌체 비활성화
-	anim->PlayDamageAnim(TEXT("Assasinated"));
+	anim->PlayDamageAnim(TEXT("Die"));
 //	}
 }
 
@@ -295,7 +298,7 @@ void UEnemyFSM::DamageState()
 {
 	currentTime += GetWorld()->DeltaTimeSeconds;  // 1. 시간이 흘렀으니까
 
-	anim->bAttackPlay = false;
+	anim->isOnHit = false;
 	ai->StopMovement();
 
 	if (currentTime > damageDelayTime)   // 2. 경과 시간이 대기 시간을 초과했다면

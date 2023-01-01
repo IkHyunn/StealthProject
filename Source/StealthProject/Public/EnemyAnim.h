@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=FSM)
 	bool bAttackPlay = false;	// 애니메이션 블루프린트 안에 bAttackPlay 라는 Boolean 변수를 만든다.
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)
+	bool isOnHit = false;
+
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 	class ATPSPlayer* target;
 

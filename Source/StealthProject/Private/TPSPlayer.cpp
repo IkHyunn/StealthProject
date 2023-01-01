@@ -138,6 +138,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자 함수 등록   -------------------------------
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	compBox ->SetupAttachment(GetMesh(), TEXT("hand_Box_rSocket"));
+	compBox ->SetBoxExtent(FVector(20));
 }
 
 
@@ -285,6 +286,7 @@ void ATPSPlayer::InputFire()   // 발사
 	{              
 		if (currentTime > attackDelayTime)
 		{
+			anim->isPlayerAttack = true;
 			anim->PlayPunchAnim();
 			currentTime = 0;
 		}
@@ -346,24 +348,27 @@ void ATPSPlayer::InputFire()   // 발사
 				UE_LOG(LogTemp, Warning, (TEXT("Lack Of Bullet")));
 				return;
 			}
-	}
-	}
+		}
+ 	}
 }
 
 void ATPSPlayer::ChangeToNoEquipped()    // 5- 비무장 상태로
 {
-	_crosshairUI -> RemoveFromParent();
+	_crosshairUI -> RemoveFromParent(); // 크로스헤어 UI 지우기
 	pistolComp->SetVisibility(false);   // 권총 no
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  // 속도를 걷는 속도로
 	anim->isGunEquipped = false;
 	bNoEquipped = true;
 }
 
 void ATPSPlayer::ChangeToPistol()   // 권총으로
 {
-	if (bgetGun == true)
+	if (bgetGun == true)  // 총을 주워야 함수 호출 가능
 	{
-		bNoEquipped = false;
-		anim->isGunEquipped = true;
+		bNoEquipped = false;  // 비무장 상태가 아니고
+		GetCharacterMovement()->MaxWalkSpeed=300;  // 걷는 속도를 300으로 설정
+		_crosshairUI->AddToViewport();
+		anim->isGunEquipped = true;  // 권총 든 애니메이션 실행
 		pistolComp->SetVisibility(true);   //권총 yes
 	}
 	else return;
@@ -419,7 +424,7 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 
 	if (isBack == true)
 	{
-		anim->PlayAssasinateAnim();
+//		anim->PlayAssasinateAnim();
 		enemy->fsm->OnBackAttack();
 		isBack = false;
 	}

@@ -8,12 +8,12 @@
 
 void UEnemyAnim::OnAttackAnimation()
 {
-	bAttackPlay = true;
+	isOnHit = true;
 }
 
 void UEnemyAnim::OnEndAttackAnimation()
 {
-	bAttackPlay = false;
+	isOnHit = false;
 }
 
 // void UEnemyAnim::OnAttackAnimation()
