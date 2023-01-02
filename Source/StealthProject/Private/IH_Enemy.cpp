@@ -58,6 +58,7 @@ void AIH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnBackOverlap);
+	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnBackEndOverlap);
 	compHandBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnHandOverlap);
 //	compHandBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnHandEndOverlap);
 
@@ -85,7 +86,20 @@ void AIH_Enemy::OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 		if (character != nullptr)
 		{
-			character->isBack = true;
+			character->backEnemy = this;
+		}
+	}
+}
+
+void AIH_Enemy::OnBackEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor != this)
+	{
+		character = Cast<ATPSPlayer>(OtherActor);
+
+		if (character != nullptr)
+		{
+			character->backEnemy = nullptr;
 		}
 	}
 }

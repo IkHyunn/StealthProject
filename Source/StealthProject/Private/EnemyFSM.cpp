@@ -105,7 +105,7 @@ void UEnemyFSM::IdleState()
 
 	if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
 	{
-		if (targetforward.Size() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+		if (targetforward.Length() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
 																// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이고
 		{
 			bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
@@ -159,7 +159,7 @@ void UEnemyFSM::MoveState()
 		}
 		else  // 랜덤 포지션에 도착하지 않았으면
 		{
-			if (targetforward.Size() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
+			if (targetforward.Length() < 1000 && AngleDegree < 40)	// 적이 플레이어를 바라보는 거리가 1000 이하이고
 	 																// 적이 앞을 바라보는 방향과 적이 플레이어를 바라보는 방향의 사이각이 -40도 이상 40도 이하이면
 	  		{
 	 			bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  // LineTrace 충돌 검출 한다.

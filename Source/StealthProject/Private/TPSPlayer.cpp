@@ -418,16 +418,20 @@ void ATPSPlayer::SniperAim()  // 6- 스나이퍼 입력 눌럿을 때 떼엇을 때
 
 void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 {
-	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());
-	AIH_Enemy* enemy = Cast<AIH_Enemy>(actor);
-	UEnemyFSM* enemyFSM = Cast<UEnemyFSM>(enemy);
-
-	if (isBack == true)
+	if (backEnemy != nullptr)
 	{
-//		anim->PlayAssasinateAnim();
-		enemy->fsm->OnBackAttack();
-		isBack = false;
+		backEnemy->fsm->OnBackAttack();
+		backEnemy = nullptr;
 	}
+
+//	AIH_Enemy* enemy = Cast<AIH_Enemy>(UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass()));
+//
+//	if (isBack == true)
+//	{
+////		anim->PlayAssasinateAnim();
+//		enemy->fsm->OnBackAttack();
+//		isBack = false;
+//	}
 }
 
 void ATPSPlayer::OnHitEvent()  // 피격 이벤트

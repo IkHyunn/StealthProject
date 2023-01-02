@@ -96,8 +96,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
 	class USoundBase* bulletSound;
 
+// 	UPROPERTY(EditAnywhere)
+// 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
+
 	UPROPERTY(EditAnywhere)
-	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
+	class AIH_Enemy* backEnemy = nullptr;  // Enemy를 담는 변수. 기본적으로 null이 저장되어 있다.
 
 	UPROPERTY(EditAnywhere)
 	bool isOnAttack = false;
