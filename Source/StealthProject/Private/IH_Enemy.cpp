@@ -51,6 +51,14 @@ AIH_Enemy::AIH_Enemy()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	// Perception Scene Component 추가
+	compEye = CreateDefaultSubobject<USceneComponent>(TEXT("Perception"));
+	compEye->SetupAttachment(GetMesh(), TEXT("EyePerception"));
+
+	// Perception Scene Component 추가
+	compSpine = CreateDefaultSubobject<USceneComponent>(TEXT("PelvisPerception"));
+	compSpine->SetupAttachment(GetMesh(), TEXT("SpinePerception"));
 }
 
 // Called when the game starts or when spawned
@@ -60,8 +68,6 @@ void AIH_Enemy::BeginPlay()
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnBackOverlap);
 	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnBackEndOverlap);
 	compHandBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnHandOverlap);
-//	compHandBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnHandEndOverlap);
-
 }
 
 // Called every frame
@@ -119,16 +125,3 @@ void AIH_Enemy::OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		}
 	}
 }
-
-//void AIH_Enemy::OnHandEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-//{
-// 	if (OtherActor != this)
-// 	{
-// 		character = Cast<ATPSPlayer>(OtherActor);
-// 
-// 		if (character != nullptr)
-// 		{
-// 	
-// 		}
-// 	}
-//}

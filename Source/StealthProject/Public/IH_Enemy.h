@@ -40,6 +40,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* compHandBox;
 
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* compEye;
+
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* compSpine;
+
  	UFUNCTION()
  	void OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -48,7 +54,4 @@ public:
 
 	UFUNCTION()
 	void OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-// 	UFUNCTION()
-// 	void OnHandEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

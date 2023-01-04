@@ -15,6 +15,7 @@ enum class EEnemyState : uint8
 	Attack,
 	Damage,
 	Die,
+	None
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -61,10 +62,10 @@ public:
 
 	// 시야각을 구하기 위한 변수
 	UPROPERTY()
-	FVector forward;
+	FVector forwardDirection;
 
 	UPROPERTY()
-	FVector targetforward;
+	FVector targetDirection;
 
 	float Dot;
 	float AcosAngle;
@@ -78,16 +79,18 @@ public:
 		float detectedRange = 1000.0f;
 
 	// 라인트레이스 설정을 위한 변수
-	FVector startPos;  // 라인트레이스 시작 위치
-	FVector endPos;  // 라인트레이스 종료 위치
+	FVector startEyePos;  // 눈높이 라인트레이스 시작 위치
+	FVector endEyePos;  // 눈높이 라인트레이스 종료 위치
+	FVector startSpinePos;  // 골반높이 라인트레이스 시작 위치
+	FVector endSpinePos;  // 골반높이 라인트레이스 종료 위치
 	FHitResult hitInfo;  // LineTrace의 충돌 정보를 담을 변수
 	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
-	
-	UPROPERTY()
-	class AActor* HitActor;
 
 	UPROPERTY(EditAnywhere)
-	bool bHit;
+	bool bEyeHit;
+
+	UPROPERTY(EditAnywhere)
+	bool bSpineHit;
 
 	UPROPERTY(EditAnywhere, Category = FSM)
 		float attackDelayTime = 2.0f;
@@ -100,7 +103,7 @@ public:
 		int32 HP = 5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-		float damageDelayTime = 0.5f;
+		float damageDelayTime = 1.5f;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 		float dieSpeed = 50.0f;
@@ -114,4 +117,6 @@ public:
 	FVector randomPos;	// 길 찾기 수행 시 랜덤 위치 변수 선언
 
 	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);	// 랜덤 위치 가져오기
+
+	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);
 };
