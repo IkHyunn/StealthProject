@@ -34,7 +34,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* compBox;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class ATPSPlayer* character;  // Overlap 된 OtherActor가 캐릭터일 떄 저장해둘 변수 선언
 
 	UPROPERTY(EditAnywhere)

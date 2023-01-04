@@ -31,11 +31,14 @@ void UEnemyFSM::BeginPlay()
 
 	auto actor = UGameplayStatics::GetActorOfClass(GetWorld(), ATPSPlayer::StaticClass());
 	target = Cast<ATPSPlayer>(actor);
+
 	me = Cast<AIH_Enemy>(GetOwner());
 	
 	anim = Cast<UEnemyAnim>(me->GetMesh()->GetAnimInstance());
 
 	ai = Cast<AAIController>(me->GetController());	// ai 변수에 AIController 할당
+
+	originPos = me->GetActorLocation();
 }
 
 bool UEnemyFSM::GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest)
@@ -71,6 +74,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 		break;
 	case EEnemyState::Die:
 		DieState();
+		break;
+	case EEnemyState :: Return:
+		ReturnState();
 		break;
 	}
 
@@ -130,7 +136,7 @@ void UEnemyFSM::MoveState()
 	}
 	else  // 랜덤 포지션에 도착하지 않았으면
 	{
-		if (targetDirection.Length() < 1000 && AngleDegree < 45)
+		if (targetDirection.Length() < detectedRange && AngleDegree < 45)
 	  	{
 			IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::None);  // 눈 높이 LineTrace
 			IsTargetTrace(startSpinePos, endSpinePos, EEnemyState::Chase, EEnemyState::None);  // 골반 높이 LineTrace
@@ -158,46 +164,17 @@ void UEnemyFSM::MoveState()
 //  		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 새로운 랜덤 위치를 가져온다.
 //  	}
 
-void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
-{
-	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
-	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);  // 눈높이 LineTrace 디버그 라인
-
-	if (bHit)  // LineTrace가 충돌했으면
-	{
-		if (hitInfo.GetActor()->GetName().Contains(TEXT("Player")))  // 충돌한 액터에 Player라는 글자가 있으면
-		{
-			if (s1 == EEnemyState::Chase)  // 매개변수로 받은 Enum 변수가 s1 이면
-			{
-				mState = s1;  // Chase 상태로 전환
-				currentTime = 0;  // 누적 시간 초기화
-				anim->animState = mState;  // 애니메이션 동기화
-			}
-		}
-		else  // Player라는 글자가 없으면
-		{
-			if (s2 == EEnemyState::None)  // State가 None 이면
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *(hitInfo.GetActor()->GetName()));
-			}
-			else if (s2 == EEnemyState::Move)
-			{
-				mState = s2;  // Move 상태로 전환
-				currentTime = 0;  // 누적된 시간을 초기화
-				anim->animState = mState;  // 애니메이션 동기화
-				GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
-			}
-		}
-	}
-}
-
 void UEnemyFSM::ChaseState()
 {
 	me->GetCharacterMovement()->MaxWalkSpeed = 600;
- 	ai->MoveToLocation(target->GetActorLocation());
+	float returnDistance = FVector::Distance(originPos, me->GetActorLocation());  // 최초 위치와 현재 위치 간의 거리
 
+	if (returnDistance > moveRange)  // 최초 위치와 현재 위치의 거리가 반경보다 커지면
+	{
+		mState = EEnemyState::Return;
+	}
 	// 타깃과 가까워지면 공격 상태로 전환
-	if (targetDirection.Size() < attackRange)	// 1. 만약 거리가 공격범위 안으로 들어오면
+	else if (targetDirection.Size() < attackRange)	// 1. 만약 거리가 공격범위 안으로 들어오면
 											// Size() 함수는 크기를 가져오는 함수.
 	{
 		ai->StopMovement();
@@ -208,6 +185,10 @@ void UEnemyFSM::ChaseState()
 		anim->bAttackPlay = false;
 		currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
 	}
+	else
+	{
+		ai->MoveToLocation(target->GetActorLocation());
+	}
 }
 
 void UEnemyFSM::AttackState()
@@ -217,7 +198,7 @@ void UEnemyFSM::AttackState()
 
 	if (currentTime > attackDelayTime)	// 2. 만약 경과 시간이 공격 시간을 넘었다면
 	{
-		if (targetDirection.Length() < 1000 && AngleDegree < 45)
+		if (targetDirection.Length() < detectedRange && AngleDegree < 45)
 		{
 			anim->bAttackPlay = true;
 			anim->isOnHit = true;
@@ -253,6 +234,7 @@ void UEnemyFSM::OnDamageProcess()
 	{
 		mState = EEnemyState::Damage;  // 피격 상태로 전환
 		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), HP);
+//		me->SetActorRotation(UKismetMathLibrary::MakeRotFromXZ(target->GetActorLocation()-me->GetActorLocation(), FVector::UpVector));
 
 		currentTime = 0;
 
@@ -306,4 +288,61 @@ void UEnemyFSM::DieState()
 	me->Destroy();  // 파괴한다.
 	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
 	currMode->AddScore(1);
+}
+
+void UEnemyFSM::ReturnState()
+{
+	EPathFollowingRequestResult::Type result = ai->MoveToLocation(originPos);
+	if (result == EPathFollowingRequestResult::AlreadyAtGoal)
+	{
+		mState = EEnemyState::Idle;
+		anim->animState = mState;
+	}
+
+// 	FVector originDistance = originPos - me->GetActorLocation();
+// 	UE_LOG(LogTemp, Error, TEXT("%f"), originDistance.Length());
+// 	if (originDistance.Length() < 40)
+// 	{
+// 		mState = EEnemyState::Idle;
+// 		anim->animState = mState;
+// 	}
+// 	else
+// 	{
+// 	
+// 		ai->MoveToLocation(originPos);
+// 		
+// 	}
+}
+
+void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
+{
+	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
+	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);  // 눈높이 LineTrace 디버그 라인
+
+	if (bHit)  // LineTrace가 충돌했으면
+	{
+		if (hitInfo.GetActor()->GetName().Contains(TEXT("Player")))  // 충돌한 액터에 Player라는 글자가 있으면
+		{
+			if (s1 == EEnemyState::Chase)  // 매개변수로 받은 Enum 변수가 s1 이면
+			{
+				mState = s1;  // Chase 상태로 전환
+				currentTime = 0;  // 누적 시간 초기화
+				anim->animState = mState;  // 애니메이션 동기화
+			}
+		}
+		else  // Player라는 글자가 없으면
+		{
+			if (s2 == EEnemyState::None)  // State가 None 이면
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *(hitInfo.GetActor()->GetName()));
+			}
+			else if (s2 == EEnemyState::Move)
+			{
+				mState = s2;  // Move 상태로 전환
+				currentTime = 0;  // 누적된 시간을 초기화
+				anim->animState = mState;  // 애니메이션 동기화
+				GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
+			}
+		}
+	}
 }

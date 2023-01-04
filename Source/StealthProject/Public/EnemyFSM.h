@@ -15,6 +15,7 @@ enum class EEnemyState : uint8
 	Attack,
 	Damage,
 	Die,
+	Return,
 	None
 };
 
@@ -39,26 +40,35 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = FSM)
 		EEnemyState mState = EEnemyState::Idle;
 
-	void IdleState();		// 대기 상태
-	void MoveState();		// 이동 상태
+	void IdleState();  // 대기 상태
+	void MoveState();  // 이동 상태
 	void ChaseState();  // 쫓는 상태
 	void AttackState();	// 공격 상태
 	void DamageState();	// 피격 상태
-	void DieState();		// 죽음 상태
+	void DieState();  // 죽음 상태
+	void ReturnState();  // 제자리로 돌아가는 상태
 
+	void OnDamageProcess();
+	void OnBackAttack();
+
+	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);	// 랜덤 위치 가져오기
+
+	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);  // LineTrace
+
+public:
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
-	float idleDelayTime = 3.0f;	// 대기 시간
-	float currentTime = 0.0f;		// 경과 시간
-	float moveDelayTime = 1.0f;	// 움직임 대기 시간
+	float idleDelayTime = 3;	// 대기 시간
+	float currentTime = 0;		// 경과 시간
+	float moveDelayTime = 1;	// 움직임 대기 시간
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
-		class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
+	class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
 
 	UPROPERTY()
-		class AIH_Enemy* me;			// 현재 액터를 나로 설정
+	class AIH_Enemy* me;			// 현재 액터를 나로 설정
 
 	UPROPERTY(EditAnywhere, Category = FSM)
-		float attackRange = 120.0f;
+	float attackRange = 120;
 
 	// 시야각을 구하기 위한 변수
 	UPROPERTY()
@@ -71,12 +81,18 @@ public:
 	float AcosAngle;
 	float AngleDegree;
 
-	FVector OutterProduct;
-	float DegSign;
-	float ResultDegree;
+// 	FVector OutterProduct;
+// 	float DegSign;
+// 	float ResultDegree;
 
 	UPROPERTY(EditAnywhere, Category = FSM)
-		float detectedRange = 1000.0f;
+	float detectedRange = 1000;  // 플레이어를 감지하는 거리
+
+	UPROPERTY(EditAnywhere, Category = FSM)
+	float moveRange = 2000;  // 적의 반경
+
+	UPROPERTY(EditAnywhere)
+	FVector originPos;  // 적의 처음 위치
 
 	// 라인트레이스 설정을 위한 변수
 	FVector startEyePos;  // 눈높이 라인트레이스 시작 위치
@@ -86,27 +102,17 @@ public:
 	FHitResult hitInfo;  // LineTrace의 충돌 정보를 담을 변수
 	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
 
-	UPROPERTY(EditAnywhere)
-	bool bEyeHit;
-
-	UPROPERTY(EditAnywhere)
-	bool bSpineHit;
-
 	UPROPERTY(EditAnywhere, Category = FSM)
-		float attackDelayTime = 2.0f;
-
-	void OnDamageProcess();
-
-	void OnBackAttack();
+	float attackDelayTime = 2;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
-		int32 HP = 5;
+	int32 HP = 5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-		float damageDelayTime = 1.5f;
+	float damageDelayTime = 1.5f;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-		float dieSpeed = 50.0f;
+	float dieSpeed = 50;
 
 	UPROPERTY()
 	class UEnemyAnim* anim;
@@ -115,8 +121,4 @@ public:
 	class AAIController* ai;	// Enemy를 소유하고 있는 AIController 변수 선언
 
 	FVector randomPos;	// 길 찾기 수행 시 랜덤 위치 변수 선언
-
-	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);	// 랜덤 위치 가져오기
-
-	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);
 };
