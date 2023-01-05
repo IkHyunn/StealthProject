@@ -52,7 +52,7 @@ void AIH_Gun::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherA
 	if (character != nullptr)
 	{
 		UE_LOG(LogTemp, Warning, (TEXT("Get Gun!")));
-		character->bgetGun=true;
+		character->bgetGun=true;  // bgetGun이 true일 때만 2번 키를 누를 수 있음.
 		character->anim->isGunEquipped=true;
 		character->ChangeToPistol();
 		Destroy();

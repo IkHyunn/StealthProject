@@ -5,6 +5,7 @@
 #include <Components/BoxComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 #include "TPSPlayer.h"
+#include "PlayerAnim.h"
 
 // Sets default values
 AIH_Knife::AIH_Knife()
@@ -46,11 +47,15 @@ void AIH_Knife::Tick(float DeltaTime)
 
 void AIH_Knife::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	character = Cast<ATPSPlayer>(OtherActor);
+	character = Cast<ATPSPlayer>(OtherActor);    // 오버랩된 플레이어를 캐스팅
 
-	if (character != nullptr)
+	if (character != nullptr)    // 널이 아니라면 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Pickup Knife"));
-		Destroy();
+		character->bgetKnife = true;      //  칼여부 = true, true일 때만 3번 키를 누를 수 있음.
+		character->anim->isKnife = true;  //   칼애님 실행
+		character->anim->isGunEquipped = false;  // 총애님 = false
+		character->ChangeToKnife();   //  칼함수호출
+		Destroy(); 
 	}
 }
