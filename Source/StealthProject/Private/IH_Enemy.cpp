@@ -42,9 +42,9 @@ AIH_Enemy::AIH_Enemy()
 
 	// HandBox 컴포넌트 추가
 	compHandBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HandBox"));
-	compHandBox->SetBoxExtent(FVector(20));
+	compHandBox->SetBoxExtent(FVector(10, 30, 10));
 	compHandBox->SetupAttachment(GetMesh(),TEXT("Socket_RightHand"));
-	compHandBox->SetRelativeLocation(FVector(0,0,0));
+	compHandBox->SetRelativeLocation(FVector(0,-10,0));
 
 
 	// 부드럽게 회전시키기
