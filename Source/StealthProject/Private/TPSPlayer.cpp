@@ -30,7 +30,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 스켈레탈메쉬 
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempMesh(TEXT("SkeletalMesh'/Game/Wise/Character/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempMesh(TEXT("SkeletalMesh'/Game/Wise/Character/Player/Arissa.Arissa'"));
 	if (TempMesh.Succeeded())  
 	{
 		GetMesh()->SetSkeletalMesh(TempMesh.Object); //GetMesh 함수를 이용하여 Mesh 컴포넌트를 가져와 SetSkeletalMesh 함수를 호출.
@@ -53,7 +53,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 
 	//총  메시
 	pistolComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SniperGunComp"));  
-	pistolComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));    // 메시의 자식, 소켓붙이기
+	pistolComp->SetupAttachment(GetMesh(), TEXT("Pistol_Socket"));    // 메시의 자식, 소켓붙이기
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempPistolMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Pistols_A.Pistols_A'")); //  데이터 로드 //  TempSniperMesh 구조체(ConstructorHelpers)변수선언
 	if(TempPistolMesh.Succeeded())  
 	{
@@ -63,7 +63,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	}
 	// 칼 메시
 	knifeComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("KnifeComp"));
-	knifeComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket_2"));
+	knifeComp->SetupAttachment(GetMesh(), TEXT("Knife_Socket"));
 	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempKnifeMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Knife_A.Knife_A'"));
 	if (tempKnifeMesh.Succeeded())
 	{
@@ -73,7 +73,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	}
 	// 소켓 컬리젼
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	compBox->SetupAttachment(GetMesh(), TEXT("hand_Box_rSocket"));
+	compBox->SetupAttachment(GetMesh(), TEXT("Hand_Socket"));
 	compBox->SetBoxExtent(FVector(20));
 
 	// 1.위젯클래스
