@@ -171,21 +171,30 @@ void UEnemyFSM::ChaseState()
 	me->GetCharacterMovement()->MaxWalkSpeed = 600;
 	float returnDistance = FVector::Distance(originPos, me->GetActorLocation());  // 최초 위치와 현재 위치 간의 거리
 
+	anim->isOnHit = false;
+
 	if (returnDistance > moveRange)  // 최초 위치와 현재 위치의 거리가 반경보다 커지면
 	{
 		mState = EEnemyState::Return;
 	}
 	// 타깃과 가까워지면 공격 상태로 전환
-	else if (targetDirection.Size() < attackRange)	// 1. 만약 거리가 공격범위 안으로 들어오면
-											// Size() 함수는 크기를 가져오는 함수.
+	else if (targetDirection.Length() < attackRange)	// 1. 만약 거리가 공격범위 안으로 들어오면
 	{
+		if (AngleDegree < 45)
+		{
 		ai->StopMovement();
 
 		mState = EEnemyState::Attack;	// 2. 공격 상태로 전환한다.
 
 		anim->animState = mState;	// 애니메이션 상태 동기화
-		anim->bAttackPlay = false;
 		currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
+		}
+		else
+		{
+			mState = EEnemyState::Idle;
+
+			anim->animState = mState;
+		}
 	}
 	else
 	{
@@ -200,20 +209,17 @@ void UEnemyFSM::AttackState()
 	// 일정 시간마다 한번씩 공격
 	if (currentTime > attackDelayTime)	// 2. 만약 경과 시간이 공격 시간을 넘었다면
 	{
-		if (targetDirection.Length() < detectedRange && AngleDegree < 45)
-		{
-			anim->bAttackPlay = true;
-			anim->isOnHit = true;
-			currentTime = 0;
-			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
-		}
-	}
-	else
-	{
-		mState = EEnemyState::Idle;
+		anim->bAttackPlay = true;
+		anim->isOnHit = true;
 		currentTime = 0;
-		anim->animState = mState;
+		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
 	}
+// 	else
+// 	{
+// 		mState = EEnemyState::Idle;
+// 		currentTime = 0;
+// 		anim->animState = mState;
+// 	}
 
 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
@@ -254,8 +260,9 @@ void UEnemyFSM::OnBackAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	HP = 0;
-	anim->isOnHit = false;
 
+	anim->bAttackPlay = false;
+	anim->isOnHit = false;
 	ai->StopMovement();
 
 	mState = EEnemyState::Die;  // 죽음 상태로 전환
@@ -266,6 +273,7 @@ void UEnemyFSM::DamageState()
 {
 	currentTime += GetWorld()->GetDeltaSeconds();
 
+	anim->bAttackPlay = false;
 	anim->isOnHit = false;
 	ai->StopMovement();
 
@@ -293,6 +301,7 @@ void UEnemyFSM::DieState()
 	}
 
 	anim->bAttackPlay = false;
+	anim->isOnHit = false;
 
 	me->Destroy();  // 파괴한다.
 	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
@@ -301,6 +310,9 @@ void UEnemyFSM::DieState()
 
 void UEnemyFSM::ReturnState()
 {
+	anim->bAttackPlay = false;
+	anim->isOnHit = false;
+
 	EPathFollowingRequestResult::Type result = ai->MoveToLocation(originPos);
 	if (result == EPathFollowingRequestResult::AlreadyAtGoal)
 	{
@@ -326,6 +338,16 @@ void UEnemyFSM::ReturnState()
 void UEnemyFSM::LookState()
 {
 	currentTime += GetWorld()->GetDeltaSeconds();
+	
+	anim->bAttackPlay = false;
+	anim->isOnHit = false;
+	ai->StopMovement();
+
+	FVector eyeForwardPos = startEyePos + me->compEye->GetForwardVector() * 1000;
+	FVector SpineForwardPos = startSpinePos + me->compSpine->GetForwardVector() * 1000;
+
+	IsTargetTrace(startEyePos, eyeForwardPos, EEnemyState::Chase, EEnemyState::None);
+	IsTargetTrace(startSpinePos, SpineForwardPos, EEnemyState::Chase, EEnemyState::None);
 
 	if (currentTime > lookDelayTime)
 	{

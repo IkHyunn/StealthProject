@@ -33,7 +33,7 @@ void AIH_HPItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	compMesh->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
+	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
 }
 
 // Called every frame
