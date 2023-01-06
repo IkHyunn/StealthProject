@@ -75,8 +75,11 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	case EEnemyState::Die:
 		DieState();
 		break;
-	case EEnemyState :: Return:
+	case EEnemyState::Return:
 		ReturnState();
+		break;
+	case EEnemyState::Look:
+		LookState();
 		break;
 	}
 
@@ -101,7 +104,7 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-	currentTime+=GetWorld()->DeltaTimeSeconds;
+	currentTime += GetWorld()->GetDeltaSeconds();
 	anim->isOnHit = false;
 
 	if (targetDirection.Length() < 1000 && AngleDegree < 45)
@@ -112,11 +115,10 @@ void UEnemyFSM::IdleState()
 	}
 	else
 	{
-		if (currentTime > idleDelayTime)  // 누적된 시간이 DelayTime(2)보다 크다면
+		if (currentTime > idleDelayTime)  // 누적된 시간이 idleDelayTime보다 크다면
 		{
-			mState = EEnemyState::Move;  // Move 상태로 전환
-			currentTime = 0;  // 누적된 시간을 초기화
-
+			mState = EEnemyState::Move;
+			currentTime = 0;
 			anim->animState = mState;  // 애니메이션 동기화
 			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
 		}
@@ -193,9 +195,9 @@ void UEnemyFSM::ChaseState()
 
 void UEnemyFSM::AttackState()
 {
-	// 일정 시간마다 한번씩 공격
-	currentTime += GetWorld()->DeltaTimeSeconds;	// 1. 시간이 흘러서
+	currentTime += GetWorld()->GetDeltaSeconds();
 
+	// 일정 시간마다 한번씩 공격
 	if (currentTime > attackDelayTime)	// 2. 만약 경과 시간이 공격 시간을 넘었다면
 	{
 		if (targetDirection.Length() < detectedRange && AngleDegree < 45)
@@ -214,7 +216,7 @@ void UEnemyFSM::AttackState()
 	}
 
 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
-	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// 1. FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
+	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
 																								// Target과 Me 사이의 거리를 구한다.
 	if (distance > attackRange)
 	{
@@ -232,10 +234,9 @@ void UEnemyFSM::OnDamageProcess()
 
 	if (HP > 0)  // HP가 0 이상이면
 	{
-		mState = EEnemyState::Damage;  // 피격 상태로 전환
+		me->SetActorRotation(UKismetMathLibrary::MakeRotFromXZ(target->GetActorLocation() - me->GetActorLocation(), FVector::UpVector));
 		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), HP);
-//		me->SetActorRotation(UKismetMathLibrary::MakeRotFromXZ(target->GetActorLocation()-me->GetActorLocation(), FVector::UpVector));
-
+		mState = EEnemyState::Damage;  // 피격 상태로 전환
 		currentTime = 0;
 
 		int32 index = FMath::RandRange(0, 1);
@@ -263,15 +264,23 @@ void UEnemyFSM::OnBackAttack()
 
 void UEnemyFSM::DamageState()
 {
-	currentTime += GetWorld()->DeltaTimeSeconds;  // 1. 시간이 흘렀으니까
+	currentTime += GetWorld()->GetDeltaSeconds();
 
 	anim->isOnHit = false;
 	ai->StopMovement();
 
-	if (currentTime > damageDelayTime)   // 2. 경과 시간이 대기 시간을 초과했다면
+	if (targetDirection.Length() < 1000 && AngleDegree < 45)
 	{
-		mState = EEnemyState::Idle;  // 3. 대기 상태로 전환하고 싶다.
-		currentTime = 0;  // 4. 시간이 누적되기 때문에 0으로 경과 시간 초기화.
+		if (currentTime > damageDelayTime)
+		{
+			IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
+			IsTargetTrace(startSpinePos, endSpinePos, EEnemyState::Chase, EEnemyState::Idle);
+		}
+	}
+	else
+	{
+		mState = EEnemyState::Look;  // 대기 상태로 전환하고 싶다.
+		currentTime = 0;
 		anim->animState = mState;
 	}
 }
@@ -314,6 +323,23 @@ void UEnemyFSM::ReturnState()
 // 	}
 }
 
+void UEnemyFSM::LookState()
+{
+	currentTime += GetWorld()->GetDeltaSeconds();
+
+	if (currentTime > lookDelayTime)
+	{
+		mState = EEnemyState::Idle;
+		currentTime = 0;
+		anim->animState=mState;
+	}
+// 	if (targetDirection.Length() < detectedRange && AngleDegree < 45)
+// 	{
+// 		IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
+// 		IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
+// 	}
+}
+
 void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
 {
 	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);  // LineTrace 충돌 검출, 충돌하면 true로 반환됨.
@@ -336,12 +362,23 @@ void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemy
 			{
 				UE_LOG(LogTemp, Warning, TEXT("%s"), *(hitInfo.GetActor()->GetName()));
 			}
+			else if (s2 == EEnemyState::Idle)
+			{
+				mState = s2;
+				currentTime = 0;
+				anim->animState = mState;
+			}
 			else if (s2 == EEnemyState::Move)
 			{
 				mState = s2;  // Move 상태로 전환
 				currentTime = 0;  // 누적된 시간을 초기화
 				anim->animState = mState;  // 애니메이션 동기화
 				GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);  // 최초 랜덤 위치 정해주기
+			}
+			else if (s2 == EEnemyState::Look)
+			{
+				mState = s2;
+				currentTime = 0;
 			}
 		}
 	}

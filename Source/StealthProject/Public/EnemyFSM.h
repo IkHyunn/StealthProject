@@ -16,6 +16,7 @@ enum class EEnemyState : uint8
 	Damage,
 	Die,
 	Return,
+	Look,
 	None
 };
 
@@ -47,6 +48,7 @@ public:
 	void DamageState();	// 피격 상태
 	void DieState();  // 죽음 상태
 	void ReturnState();  // 제자리로 돌아가는 상태
+	void LookState();
 
 	void OnDamageProcess();
 	void OnBackAttack();
@@ -60,6 +62,7 @@ public:
 	float idleDelayTime = 3;	// 대기 시간
 	float currentTime = 0;		// 경과 시간
 	float moveDelayTime = 1;	// 움직임 대기 시간
+	float lookDelayTime = 4;  // 둘러보는 시간
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 	class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
@@ -68,7 +71,7 @@ public:
 	class AIH_Enemy* me;			// 현재 액터를 나로 설정
 
 	UPROPERTY(EditAnywhere, Category = FSM)
-	float attackRange = 120;
+	float attackRange = 150;
 
 	// 시야각을 구하기 위한 변수
 	UPROPERTY()
@@ -109,7 +112,7 @@ public:
 	int32 HP = 5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-	float damageDelayTime = 1.5f;
+	float damageDelayTime = 1.5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float dieSpeed = 50;

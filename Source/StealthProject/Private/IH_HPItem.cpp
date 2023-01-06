@@ -19,6 +19,7 @@ AIH_HPItem::AIH_HPItem()
 	compMesh->SetupAttachment(compBox);
 	compMesh->SetRelativeLocation(FVector(0, 0, -30));
 	compMesh->SetRelativeScale3D(FVector(0.5));
+	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_NarrowCapsule.Shape_NarrowCapsule'"));
 	if (tempMesh.Succeeded())
