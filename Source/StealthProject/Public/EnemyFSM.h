@@ -112,7 +112,7 @@ public:
 	int32 HP = 5;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
-	float damageDelayTime = 1.5;
+	float damageDelayTime = 1;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float dieSpeed = 50;
@@ -124,4 +124,6 @@ public:
 	class AAIController* ai;	// Enemy를 소유하고 있는 AIController 변수 선언
 
 	FVector randomPos;	// 길 찾기 수행 시 랜덤 위치 변수 선언
+
+	bool isDamaged = false;
 };

@@ -109,13 +109,14 @@ void UEnemyFSM::IdleState()
 
 	if (targetDirection.Length() < 1000 && AngleDegree < 45)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%f"), targetDirection.Length());
+		UE_LOG(LogTemp, Warning, TEXT("%f"), AngleDegree);
 		IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Move);  // 눈 높이 LineTrace
-
 		IsTargetTrace(startSpinePos, endSpinePos, EEnemyState::Chase, EEnemyState::Move);  // 골반 높이 LineTrace
 	}
 	else
 	{
-		if (currentTime > idleDelayTime)  // 누적된 시간이 idleDelayTime보다 크다면
+		if(currentTime > idleDelayTime)
 		{
 			mState = EEnemyState::Move;
 			currentTime = 0;
@@ -182,12 +183,12 @@ void UEnemyFSM::ChaseState()
 	{
 		if (AngleDegree < 45)
 		{
-		ai->StopMovement();
+			ai->StopMovement();
 
-		mState = EEnemyState::Attack;	// 2. 공격 상태로 전환한다.
+			mState = EEnemyState::Attack;	// 2. 공격 상태로 전환한다.
 
-		anim->animState = mState;	// 애니메이션 상태 동기화
-		currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
+			anim->animState = mState;	// 애니메이션 상태 동기화
+			currentTime = attackDelayTime;	// 공격 상태 전환 시 대기 시간이 바로 끝나도록 처리
 		}
 		else
 		{
@@ -209,17 +210,14 @@ void UEnemyFSM::AttackState()
 	// 일정 시간마다 한번씩 공격
 	if (currentTime > attackDelayTime)	// 2. 만약 경과 시간이 공격 시간을 넘었다면
 	{
-		anim->bAttackPlay = true;
-		anim->isOnHit = true;
-		currentTime = 0;
-		GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
+		if (AngleDegree < 45)
+		{
+			anim->bAttackPlay = true;
+			anim->isOnHit = true;
+			currentTime = 0;
+			GetRandomPositionInNavMesh(me->GetActorLocation(), 500, randomPos);
+		}
 	}
-// 	else
-// 	{
-// 		mState = EEnemyState::Idle;
-// 		currentTime = 0;
-// 		anim->animState = mState;
-// 	}
 
 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
@@ -237,6 +235,7 @@ void UEnemyFSM::AttackState()
 void UEnemyFSM::OnDamageProcess()
 {
 	HP--;
+	isDamaged = true;
 
 	if (HP > 0)  // HP가 0 이상이면
 	{
@@ -263,7 +262,7 @@ void UEnemyFSM::OnBackAttack()
 
 	anim->bAttackPlay = false;
 	anim->isOnHit = false;
-	ai->StopMovement();
+
 
 	mState = EEnemyState::Die;  // 죽음 상태로 전환
 	anim->PlayDamageAnim(TEXT("Die"));
@@ -273,39 +272,44 @@ void UEnemyFSM::DamageState()
 {
 	currentTime += GetWorld()->GetDeltaSeconds();
 
+	ai->StopMovement();
 	anim->bAttackPlay = false;
 	anim->isOnHit = false;
-	ai->StopMovement();
 
-	if (targetDirection.Length() < 1000 && AngleDegree < 45)
-	{
-		if (currentTime > damageDelayTime)
-		{
-			IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
-			IsTargetTrace(startSpinePos, endSpinePos, EEnemyState::Chase, EEnemyState::Idle);
-		}
+	if (targetDirection.Length() > 1000)  // 거리가 1000 이상이면
+	{	
+		mState = EEnemyState::Look;  // 둘러보는 상태로 전환
+		currentTime = 0;
+		anim->animState = mState;
 	}
 	else
 	{
-		mState = EEnemyState::Look;  // 대기 상태로 전환하고 싶다.
-		currentTime = 0;
-		anim->animState = mState;
+		if (currentTime > damageDelayTime)
+		{
+			mState = EEnemyState::Chase;  // Idle 상태로 전환
+			currentTime = 0;  // 현재 시간 초기화
+			anim->animState = mState;  // 애니메이션 동기화
+		}
 	}
 }
 
 void UEnemyFSM::DieState()
 {
+	ai->StopMovement();
+	
 	if (anim->bDieDone == false)  // 아직 죽음 애니메이션이 끝나지 않았다면
 	{
 		return;  // 바닥으로 내려가지 않도록 처리
 	}
+	else
+	{
+		anim->bAttackPlay = false;
+		anim->isOnHit = false;
 
-	anim->bAttackPlay = false;
-	anim->isOnHit = false;
-
-	me->Destroy();  // 파괴한다.
-	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
-	currMode->AddScore(1);
+		me->Destroy();  // 파괴한다.
+		AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
+		currMode->AddScore(1);
+	}
 }
 
 void UEnemyFSM::ReturnState()
@@ -355,11 +359,6 @@ void UEnemyFSM::LookState()
 		currentTime = 0;
 		anim->animState=mState;
 	}
-// 	if (targetDirection.Length() < detectedRange && AngleDegree < 45)
-// 	{
-// 		IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
-// 		IsTargetTrace(startEyePos, endEyePos, EEnemyState::Chase, EEnemyState::Idle);
-// 	}
 }
 
 void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
