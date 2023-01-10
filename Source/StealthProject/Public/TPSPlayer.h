@@ -36,7 +36,7 @@ public:
 
 	// 칼 메시
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)
-	class USkeletalMeshComponent* knifeComp;
+	class USkeletalMeshComponent* bowComp;
 
 
 		
@@ -71,19 +71,19 @@ public:
 		float crouchSpeed = 200;                            //
 
 	UPROPERTY()
-		class UPlayerAnim* anim;
+		class UPlayerAnim* anim;                         // 애님변수
 
 	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     // 카메라세이크 
 	TSubclassOf<class UCameraShakeBase> cameraShake;
 
 	UPROPERTY(EditAnywhere)
-	int32 currentBullet = 0;
+	int32 currentBullet = 0;               // 
 
 	UPROPERTY(EditAnywhere)  // 총 가짐여부
 		bool bgetGun = false;
 
-	UPROPERTY(EditAnywhere)  // 칼 가짐여부
-		bool bgetKnife = false;
+	UPROPERTY(EditAnywhere)  // 활 가짐여부
+		bool bgetbow = false;
 
 	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
 	class USoundBase* bulletSound;
@@ -128,7 +128,7 @@ public:
 	void LineTrace();  // 라인트레이스
 	void ChangeToNoEquipped();    // 주먹
 	void ChangeToPistol();     // 권총
-	void ChangeToKnife();  
+	void ChangeToBow();  
 	void SniperAim();     //조준
 
 

@@ -33,13 +33,13 @@ public:
 	bool isGunEquipped = false;  // 총 들었는지
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = PlayerAnim)
-	bool isKnife = false;  // 칼 들었는지
+	bool isBow = false;  // 활 들었는지
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isCrouched = false;   //  웅크렷는지
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	class UAnimMontage* attackAnimMontage;    // 어택 몽타주
+	class UAnimMontage* attackAnimMontage;    // 공격 몽타주
 
 	void PlayAttackAnim();    // 공격 애니메이션 재생 함수
 
@@ -49,9 +49,14 @@ public:
 	void PlayAssasinateAnim();  // 암살
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	class UAnimMontage* punchAnimMontage;
+	class UAnimMontage* punchAnimMontage;   // 주먹질 몽타주
 
-	void PlayPunchAnim();
+	void PlayPunchAnim();    // 주먹질
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* BowAimAnimMontage;   // 활시위 몽타주
+
+	void PlayBowAimAnim();    // 활시위   
 
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void OnAttackAnimation();

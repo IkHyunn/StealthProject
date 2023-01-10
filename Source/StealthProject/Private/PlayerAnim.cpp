@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PlayerAnim.h"
-#include "TPSPlayer.h"     //  10. cast 하기 
-#include <GameFramework/CharacterMovementComponent.h>    // 플레이어 공중존재 여부 변수에서 참조해야
+#include "TPSPlayer.h"     
+#include <GameFramework/CharacterMovementComponent.h>    
 #include <GameFramework/Actor.h>
 
 
@@ -34,7 +33,7 @@ if (player)
 	isInAir = movement->IsFalling();    //  공중에 있는지 isInAir
 	}
 }
- // 어택 애니메이션 몽타주 재생 함수 구현
+ // 총 어깨 애니메이션 몽타주 재생 함수 구현
 void UPlayerAnim::PlayAttackAnim()
 {
 	Montage_Play(attackAnimMontage);
@@ -52,12 +51,18 @@ void UPlayerAnim::PlayPunchAnim()
 	Montage_Play(punchAnimMontage);
 }
 
+// 활시위 애니메이션 몽타주 
+void UPlayerAnim::PlayBowAimAnim()
+{
+	Montage_Play(BowAimAnimMontage);
+}
+
 // 
 void UPlayerAnim::OnAttackAnimation()
 {
 	isPlayerAttack = true;  
 }
-
+//
 void UPlayerAnim::EndAttackAnimation()
 {
 	isPlayerAttack = false;

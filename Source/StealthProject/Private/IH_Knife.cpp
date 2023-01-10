@@ -19,11 +19,11 @@ AIH_Knife::AIH_Knife()
 
 	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));
 	compMesh -> SetupAttachment(compBox);
-	compMesh->SetRelativeLocation(FVector(0, -5, -5));
-	compMesh->SetRelativeScale3D(FVector(1.5));
+	compMesh->SetRelativeLocation(FVector(0, -10, 0));
+	compMesh->SetRelativeScale3D(FVector(1));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Knife_A.Knife_A'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/Bows/source/Bows_and_CrossBows_SketchFab_Ready_.Bows_and_CrossBows_SketchFab_Ready__Recurve Bow 2'"));
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetSkeletalMesh(tempMesh.Object);
@@ -51,11 +51,13 @@ void AIH_Knife::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 	if (character != nullptr)    // 널이 아니라면 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pickup Knife"));
-		character->bgetKnife = true;      //  칼여부 = true, true일 때만 3번 키를 누를 수 있음.
-		character->anim->isKnife = true;  //   칼애님 실행
-		character->anim->isGunEquipped = false;  // 총애님 = false
-		character->ChangeToKnife();   //  칼함수호출
+		UE_LOG(LogTemp, Warning, TEXT("Pickup BOW1"));
+		character->bgetbow = true;      //  활여부 = true, true일 때만 3번 키를 누를 수 있음.
+		character->anim->isBow = true;  //   활 애님 = true
+		character->ChangeToBow();   //  활 함수호출
+
+		character->anim->isGunEquipped = false;  // 총애님
+
 		Destroy(); 
 	}
 }

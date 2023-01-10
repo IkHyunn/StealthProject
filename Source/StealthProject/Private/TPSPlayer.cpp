@@ -1,26 +1,21 @@
-// 단축키 alt + o
 
 
-
-
-#include "TPSPlayer.h"   // 플레이어
-#include <GameFramework/SpringArmComponent.h>   //  스프링암 
-#include <Camera/CameraComponent.h>        // 카메라 
-#include "Bullet.h"     // 총알
-#include <UObject/ConstructorHelpers.h>  // 5- 유탄총 & 스나이퍼건
-#include <Blueprint/UserWidget.h>    // 6- 스나이퍼 UI
-#include <Kismet/GameplayStatics.h>   // 6- 3  총알퍄편효과 에미터
+#include "TPSPlayer.h"  
+#include <GameFramework/SpringArmComponent.h>  
+#include <Camera/CameraComponent.h>       
+#include "Bullet.h"     
+#include <UObject/ConstructorHelpers.h>  
+#include <Blueprint/UserWidget.h>    
+#include <Kismet/GameplayStatics.h>   
 #include <Components/SceneComponent.h>
-#include <Components/StaticMeshComponent.h>   // 10- 소켓때문?
+#include <Components/StaticMeshComponent.h> 
 #include "IH_Enemy.h"
 #include "EnemyFSM.h"
 #include "../StealthProjectGameModeBase.h"
-#include <GameFramework/CharacterMovementComponent.h>    // 10-
+#include <GameFramework/CharacterMovementComponent.h>  
 #include <Particles/ParticleSystem.h>
 #include "PlayerAnim.h"
 #include <Components/BoxComponent.h>
-
-
 
 
 
@@ -62,14 +57,12 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 		pistolComp->SetRelativeRotation(FRotator(0, 90, 0));     
 	}
 	// 칼 메시
-	knifeComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("KnifeComp"));
-	knifeComp->SetupAttachment(GetMesh(), TEXT("Knife_Socket"));
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempKnifeMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Knife_A.Knife_A'"));
-	if (tempKnifeMesh.Succeeded())
+	bowComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("bowComp"));
+	bowComp->SetupAttachment(GetMesh(), TEXT("LeftbowSocket"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempbowMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/Bows/source/Bows_and_CrossBows_SketchFab_Ready_.Bows_and_CrossBows_SketchFab_Ready__Recurve Bow 2'"));
+	if (tempbowMesh.Succeeded())
 	{
-		knifeComp->SetSkeletalMesh(tempKnifeMesh.Object);
-		knifeComp->SetRelativeLocation(FVector(-8.385662, 3.357624, -2.620080));
-		knifeComp->SetRelativeRotation(FRotator(0, 90, 0));
+		bowComp->SetSkeletalMesh(tempbowMesh.Object);
 	}
 	// 소켓 컬리젼
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
@@ -100,7 +93,7 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	{
 		bulletEffectFactory = tempEffectFactory.Object;
 	}
-	//UPROPERTY(EditDefaultsOnly, Category = CameraMotion)     //카메라세이크 블루프린트를 저장할 변수
+	//UPROPERTY(EditDefaultsOnly, Category = CameraMotion)   
 	//	TSubclassOf<class UCameraShakeBase> cameraShake;
 	// 5.카메라 쉐이크 블루프린트 가져오기
 	ConstructorHelpers::FClassFinder<UCameraShakeBase> tempShakeBase(TEXT("Blueprint'/Game/Wise/Blueprints/BP_CamerShake.BP_CamerShake_C'"));
@@ -125,15 +118,13 @@ void ATPSPlayer::BeginPlay()
 	
 	// 초기설정
 	pistolComp->SetVisibility(false);   // 총no  
-	knifeComp->SetVisibility(false);   // 칼no
+	bowComp->SetVisibility(false);   // 활no
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  //걷기로
 	HP = initialHP;   // hp = 0
-
-	anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());   // 처음에 플레이어의 anim 캐스트
-	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      // 스나이퍼ui위젯생성
-	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어위젯생성
-
-	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::OnOverlap); // 소켓컬리젼?
+	anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());  // 애님cast 
+	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      //스나이퍼 ui 생성
+	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어 ui 생성 
+	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::OnOverlap);  //
 }
 
 
@@ -142,8 +133,7 @@ void ATPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	Move();   // 이동
-	currentTime += DeltaTime;  // 시간누적 
-
+	currentTime += DeltaTime;  // 시간누적
 }
 
 
@@ -159,9 +149,9 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 발사 
 	PlayerInputComponent->BindAction(TEXT("NoEquipped"), IE_Pressed, this, &ATPSPlayer::ChangeToNoEquipped);   // 주먹
 	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToPistol);   // 권총
-	PlayerInputComponent->BindAction(TEXT("Knife"), IE_Pressed, this, &ATPSPlayer::ChangeToKnife); // 칼
+	PlayerInputComponent->BindAction(TEXT("Bow"), IE_Pressed, this, &ATPSPlayer::ChangeToBow); // 활
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    // 조준 
-	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    // 
+	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); // 달리기
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &ATPSPlayer::InputRun);   // 걷기
 	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ATPSPlayer::InputCrouch); // 숙이기
@@ -198,7 +188,7 @@ void ATPSPlayer::Move()
 {
 	direction = FTransform(GetControlRotation()).TransformVector(direction);   // 가는 방향바라보기 
 	AddMovementInput(direction);
-	direction = FVector::ZeroVector;   
+	direction = FVector::ZeroVector;   // direction 초기화
 }
 
 void ATPSPlayer::InputRun() // MaxWalkSpeed 설정      
@@ -221,14 +211,14 @@ void ATPSPlayer::InputRun() // MaxWalkSpeed 설정
 void ATPSPlayer::InputCrouch()   // 웅크리기
 {
 	auto movement = GetCharacterMovement();
-	if (bNoEquipped == true)   //주먹
+	if (bNoEquipped == true)   //주먹일때  anim-> isCrouched 는 true
 	{
-		if (anim->isCrouched == false)
+		if (anim->isCrouched == false)    // 눌럿을 때 맨주먹이며 웅크리면
 		{
-			movement->MaxWalkSpeed = crouchSpeed;
+			movement->MaxWalkSpeed = crouchSpeed;  // 200 으로 느리게 걷기
 			anim->isCrouched = true;
 		}
-		else
+		else                             // 떼엇을 때
 		{
 			movement->MaxWalkSpeed = walkSpeed;
 			anim->isCrouched = false;
@@ -239,7 +229,8 @@ void ATPSPlayer::InputCrouch()   // 웅크리기
 
 void ATPSPlayer::InputFire()  
 {
-	if (bNoEquipped)  // 주먹질이면
+	// 주먹질 
+	if (bNoEquipped) 
 	{              
 		if (currentTime > attackDelayTime)  // 일정시간이 지나야 
 		{
@@ -249,9 +240,16 @@ void ATPSPlayer::InputFire()
 			return;
 		}
 	}
-	if ((pistolComp->IsVisible() == true) && (currentBullet > 0))   //권총이고 총알이 잇으면 
+	//권총이고 총알이 잇으면
+	if ((pistolComp->IsVisible() == true) && (currentBullet > 0))    
 	{ 
 		anim->PlayAttackAnim();  //총 애님실행
+		LineTrace();  // 권총 라인트레이스 
+	}
+	// 
+	if (bowComp->IsVisible() == true)
+	{
+		anim->PlayBowAimAnim();  //총 애님실행
 		LineTrace();  // 권총 라인트레이스 
 	}
 }
@@ -262,7 +260,7 @@ void ATPSPlayer::ChangeToNoEquipped()    //주먹 -1번
 	_crosshairUI -> RemoveFromParent(); // 크로스헤어 UI 안보이기
 	pistolComp->SetVisibility(false);   // 권총 안보이기
 	anim->isGunEquipped = false;       // 권총애님 = no
-	knifeComp->SetVisibility(false);   // 칼 안보이기
+	bowComp->SetVisibility(false);   // 활 안보이기
 	                                   // 칼애님 = no
 	// 보이기
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  // 속도를 걷는 속도로
@@ -278,17 +276,17 @@ void ATPSPlayer::ChangeToPistol()   // 권총으로 -2번
 		_crosshairUI->AddToViewport();    // 크로스헤어 보이기
 		anim->isGunEquipped = true;  // 권총 든 애니메이션 실행
 		pistolComp->SetVisibility(true);   //권총 yes
-		knifeComp->SetVisibility(false);   //칼 no
+		bowComp->SetVisibility(false);   //활 no
 	}
 }
 
-void ATPSPlayer::ChangeToKnife()   // 칼 - 3번키 
+void ATPSPlayer::ChangeToBow()   // 활 - 3번키 
 {
-	if (bgetKnife == true)  // 칼 주은 이후와 이후로 3번키 누를 때 함수 호출 가능
+	if (bgetbow == true)  // 활 주은 이후와 이후로 3번키 누를 때 함수 호출 가능
 	{
 		bNoEquipped = false;  // 맨주먹 no
 		pistolComp->SetVisibility(false);   //권총 no
-		knifeComp->SetVisibility(true);   //칼 yes
+		bowComp->SetVisibility(true);   //활 yes
 		anim->isGunEquipped = false;
 		_crosshairUI->RemoveFromParent(); // 크로스헤어 UI 지우기
 		                   // 펀치애님실행 // 칼 애니메이션 실행   !!!!
@@ -338,7 +336,7 @@ void ATPSPlayer::fireEffect()
 	controller->PlayerCameraManager->StartCameraShake(cameraShake);
 }
 
-void ATPSPlayer::LineTrace()  //총 발사 라인트레이스
+void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 {
 	FVector startPos = tpsCamComp->GetComponentLocation();  // 시작 위치
 	FVector endPos = tpsCamComp->GetComponentLocation() + tpsCamComp->GetForwardVector() * 5000;  // 종료위치
