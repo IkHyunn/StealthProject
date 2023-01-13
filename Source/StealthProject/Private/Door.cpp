@@ -14,11 +14,13 @@ ADoor::ADoor()
 
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/Wise/Resources/StorageHouse/Meshes/Buildings/SM_Door_01.SM_Door_01'"));
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetStaticMesh(tempMesh.Object);
 	}
+
+	rotateZ = -90;
 }
 
 // Called when the game starts or when spawned
@@ -35,19 +37,13 @@ void ADoor::Tick(float DeltaTime)
 
 	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
 	
-	if (currMode->currScore == 4)  // 현재 점수가 일정 이상이 되면
+	if (currMode->currScore == 5)  // 현재 점수가 일정 이상이 되면
 	{
-		compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // compMesh의 Collision 설정이 사라지고
-
-		FVector P0 = GetActorLocation();
-		FVector Vt = FVector::DownVector * moveSpeed * DeltaTime;
-		FVector P = P0 + Vt;  // 문이 점점 밑으로 내려간다.
-
-		SetActorLocation(P);
-
-		if (P.Z < -300.0f)  // Z 위치값이 -200 이하가 되면
+		if (rotateZ <= 0)
 		{
-			Destroy();  // 파괴된다.
+			SetActorRotation(FRotator(0, rotateZ, 0));
+			rotateZ += DeltaTime * 200;
+			currentTime = 0;
 		}
 	}
 }

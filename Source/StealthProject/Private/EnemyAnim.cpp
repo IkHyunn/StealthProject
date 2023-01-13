@@ -4,7 +4,12 @@
 #include "EnemyAnim.h"
 #include <Kismet/GameplayStatics.h>
 #include "TPSPlayer.h"
+#include "IH_Enemy.h"
 
+void UEnemyAnim::NativeBeginPlay()
+{
+	Super::NativeBeginPlay();
+}
 
 void UEnemyAnim::OnAttackAnimation()
 {
@@ -14,6 +19,14 @@ void UEnemyAnim::OnAttackAnimation()
 void UEnemyAnim::OnEndAttackAnimation()
 {
 	isOnHit = false;
+}
+
+void UEnemyAnim::AnimNotify_HangingStart()
+{
+	APawn* pawn = TryGetPawnOwner();
+	AIH_Enemy* enemy = Cast<AIH_Enemy>(pawn);
+
+	enemy->fsm->isLooking = true;
 }
 
 // void UEnemyAnim::OnAttackAnimation()

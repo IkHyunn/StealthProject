@@ -28,4 +28,13 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float moveSpeed = 300;
+
+	UPROPERTY(EditAnywhere)
+	float currentTime = 0;
+
+	UPROPERTY(EditAnywhere)
+	float openDelayTime = 1;
+
+	UPROPERTY(EditAnywhere)
+	float rotateZ = 0;
 };

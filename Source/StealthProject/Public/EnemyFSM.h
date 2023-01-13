@@ -55,7 +55,12 @@ public:
 
 	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);	// 랜덤 위치 가져오기
 
+	bool IsDelayComplete(float delaytime);
+	void ChangeState(EEnemyState state);
 	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);  // LineTrace
+	bool TargetTrace(FVector start, FVector end);
+
+	void MoveToRandPos(FVector pos);
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
@@ -63,6 +68,7 @@ public:
 	float currentTime = 0;		// 경과 시간
 	float moveDelayTime = 1;	// 움직임 대기 시간
 	float lookDelayTime = 4;  // 둘러보는 시간
+	float attackDelayTime = 2;
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 	class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
@@ -105,9 +111,6 @@ public:
 	FHitResult hitInfo;  // LineTrace의 충돌 정보를 담을 변수
 	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
 
-	UPROPERTY(EditAnywhere, Category = FSM)
-	float attackDelayTime = 2;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
 	int32 HP = 5;
 
@@ -126,4 +129,5 @@ public:
 	FVector randomPos;	// 길 찾기 수행 시 랜덤 위치 변수 선언
 
 	bool isDamaged = false;
+	bool isLooking = false;
 };

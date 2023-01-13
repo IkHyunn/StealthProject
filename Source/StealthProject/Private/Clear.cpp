@@ -39,7 +39,7 @@ void AClear::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherAc
 
 	character = Cast<ATPSPlayer>(OtherActor);  // BoxComponent에 Overlap된 OtherActor가 Player이고,
 
-	if (currMode->currScore == 4)  // 현재 점수가 일정 점수 이상이 되면
+	if (currMode->currScore == 5)  // 현재 점수가 일정 점수 이상이 되면
 	{
 		if (character != nullptr)  // 캐릭터가 null이 아닐 때
 		{
