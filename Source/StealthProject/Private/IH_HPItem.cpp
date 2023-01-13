@@ -4,6 +4,9 @@
 #include "IH_HPItem.h"
 #include <Components/BoxComponent.h>
 #include "TPSPlayer.h"
+#include <Components/SphereComponent.h>
+#include <Components/WidgetComponent.h>
+#include <Blueprint/UserWidget.h>
 
 // Sets default values
 AIH_HPItem::AIH_HPItem()
@@ -17,14 +20,27 @@ AIH_HPItem::AIH_HPItem()
 
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 	compMesh->SetupAttachment(compBox);
-	compMesh->SetRelativeLocation(FVector(0, 0, -30));
-	compMesh->SetRelativeScale3D(FVector(0.5));
+	compMesh->SetRelativeScale3D(FVector(2));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_NarrowCapsule.Shape_NarrowCapsule'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/Wise/Resources/StorageHouse/Meshes/Props/SM_FirstAidKit.SM_FirstAidKit'"));
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetStaticMesh(tempMesh.Object);
+	}
+
+	compSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	compSphere->SetupAttachment(RootComponent);
+	compSphere ->SetSphereRadius(450);
+
+	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
+	compWidget->SetupAttachment(RootComponent);
+	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	if (tempWidget.Succeeded())
+	{
+		compWidget->SetWidgetClass(tempWidget.Class);
 	}
 }
 
@@ -34,6 +50,8 @@ void AIH_HPItem::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
+	compWidget->SetVisibility(false);
+	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnSphereOverlap);
 }
 
 // Called every frame
@@ -53,5 +71,15 @@ void AIH_HPItem::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		UE_LOG(LogTemp, Warning, TEXT("Current HP : %d"), character->HP);
 
 		Destroy();
+	}
+}
+
+void AIH_HPItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(true);
 	}
 }

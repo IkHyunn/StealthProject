@@ -53,14 +53,12 @@ public:
 	void OnDamageProcess();
 	void OnBackAttack();
 
-	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);	// 랜덤 위치 가져오기
-
 	bool IsDelayComplete(float delaytime);
 	void ChangeState(EEnemyState state);
-	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);  // LineTrace
 	bool TargetTrace(FVector start, FVector end);
-
 	void MoveToRandPos(FVector pos);
+
+//	void IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2);  // LineTrace
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
@@ -125,6 +123,9 @@ public:
 
 	UPROPERTY()
 	class AAIController* ai;	// Enemy를 소유하고 있는 AIController 변수 선언
+
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* damagedMontage;
 
 	FVector randomPos;	// 길 찾기 수행 시 랜덤 위치 변수 선언
 
