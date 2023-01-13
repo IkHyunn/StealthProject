@@ -33,30 +33,35 @@ if (player)
 	isInAir = movement->IsFalling();    //  공중에 있는지 isInAir
 	}
 }
- // 총 어깨 애니메이션 몽타주 재생 함수 구현
+ // 총 어깨 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayAttackAnim()
 {
 	Montage_Play(attackAnimMontage);
 }
 
-// 암살 애니메이션 몽타주 재생 함수 구현
+// 암살 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayAssasinateAnim()
 {
 	Montage_Play(assasinateAnimMontage);
 }
 
-// 주먹질 애니메이션 몽타주 
+// 주먹질 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayPunchAnim()
 {
 	Montage_Play(punchAnimMontage);
 }
 
-// 활시위 애니메이션 몽타주 
+// 활시위 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayBowAimAnim()
 {
 	Montage_Play(BowAimAnimMontage);
 }
 
+// 맞는 애니메이션 몽타주 재생 함수 
+//void UPlayerAnim::PlayDamageAnim()
+//{
+//	Montage_Play(DamageMontage);
+//}
 // 
 void UPlayerAnim::OnAttackAnimation()
 {
