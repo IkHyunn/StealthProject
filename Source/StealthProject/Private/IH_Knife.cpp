@@ -16,10 +16,9 @@ AIH_Knife::AIH_Knife()
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	SetRootComponent(compBox);
 	compBox->SetBoxExtent(FVector(50));
-
-	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));
+	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bow"));
 	compMesh -> SetupAttachment(compBox);
-	compMesh->SetRelativeLocation(FVector(0, -10, 0));
+	compMesh->SetRelativeLocation(FVector(-210.017793, -10.000000, 0.000002));
 	compMesh->SetRelativeScale3D(FVector(1));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -56,7 +55,7 @@ void AIH_Knife::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		character->anim->isBow = true;  //   È° ¾Ö´Ô = true
 		character->ChangeToBow();   //  È° ÇÔ¼öÈ£Ãâ
 
-		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô
+		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô no
 
 		Destroy(); 
 	}

@@ -39,24 +39,27 @@ public:
 	bool isCrouched = false;   //  웅크렷는지
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	class UAnimMontage* attackAnimMontage;    // 공격 몽타주
-
-	void PlayAttackAnim();    // 공격 애니메이션 재생 함수
+	class UAnimMontage* attackAnimMontage;    // 총 몽타주
+	void PlayAttackAnim();    // 총 애니메이션 재생 함수
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 	class UAnimMontage* assasinateAnimMontage;  // 암살 몽타주
-
-	void PlayAssasinateAnim();  // 암살
+	void PlayAssasinateAnim();  // 암살 애니메이션 재생 함수
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 	class UAnimMontage* punchAnimMontage;   // 주먹질 몽타주
-
-	void PlayPunchAnim();    // 주먹질
+	void PlayPunchAnim();    // 주먹질 애니메이션 재생 함수
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* BowAimAnimMontage;   // 활시위 몽타주
+	void PlayBowAimAnim();    // 활시위  애니메이션 재생 함수 
 
-	void PlayBowAimAnim();    // 활시위   
+	//UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+	//	class UAnimMontage* DamageMontage;   // 맞는 몽타주
+	//void PlayDamageAnim(FName sectionName);    // 맞기 애니메이션 재생 함수  
+
+	UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주
+	void PlayDamageAnim(FName sectionName);    // 맞기 애니메이션 재생 함수
 
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void OnAttackAnimation();
