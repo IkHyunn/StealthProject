@@ -28,7 +28,16 @@ public:
 	class UBoxComponent* compBox;
 
 	UPROPERTY(EditAnywhere)
+	class USphereComponent* compSphere;
+
+	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* compMesh;
+
+	UPROPERTY(EditAnywhere)
+	class UWidgetComponent* compWidget;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf <class UUserWidget> tempPointer;
 
 	UPROPERTY(EditAnywhere)
 	class ATPSPlayer* character;
@@ -36,4 +45,7 @@ public:
 public:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

@@ -20,7 +20,11 @@ UEnemyFSM::UEnemyFSM()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	ConstructorHelpers::FObjectFinder<UAnimMontage> tempMontage(TEXT("AnimMontage'/Game/Wise/Animations/Enemy/EnemyDamage_Montage.EnemyDamage_Montage'"));
+	if (tempMontage.Succeeded())
+	{
+		damagedMontage = tempMontage.Object;
+	}
 }
 
 
@@ -39,15 +43,6 @@ void UEnemyFSM::BeginPlay()
 	ai = Cast<AAIController>(me->GetController());	// ai 변수에 AIController 할당
 
 	originPos = me->GetActorLocation();
-}
-
-bool UEnemyFSM::GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest)
-{
-	auto ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());
-	FNavLocation loc;
-	bool result = ns->GetRandomReachablePointInRadius(centerLocation, radius, loc);
-	dest = loc.Location;
-	return result;
 }
 
 // Called every frame
@@ -196,7 +191,7 @@ void UEnemyFSM::OnDamageProcess()
 	else  // HP가 0 이하로 떨어지면
 	{
 		ChangeState(EEnemyState::Die);
-		anim->PlayDamageAnim(TEXT("Die"));
+		me->PlayAnimMontage(damagedMontage, 1.0f, FName(TEXT("Die")));
 	}
 }
 
@@ -209,7 +204,7 @@ void UEnemyFSM::OnBackAttack()
 	anim->isOnHit = false;
 
 	ChangeState(EEnemyState::Die);
-	anim->PlayDamageAnim(TEXT("Die"));
+	me->PlayAnimMontage(damagedMontage, 1.0f, FName(TEXT("Assasinated")));
 }
 
 void UEnemyFSM::DamageState()
@@ -323,7 +318,11 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 		case EEnemyState::Move:
 		{
 			me->GetCharacterMovement()->MaxWalkSpeed = 200;
-			GetRandomPositionInNavMesh(originPos, 1000, randomPos);
+			
+			UNavigationSystemV1* ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());
+			FNavLocation loc;
+			ns->GetRandomReachablePointInRadius(originPos, 1000, loc);
+			randomPos = loc.Location;
 			break;
 		}
 		case EEnemyState::Damage:
@@ -331,7 +330,7 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 			me->SetActorRotation(UKismetMathLibrary::MakeRotFromXZ(target->GetActorLocation() - me->GetActorLocation(), FVector::UpVector));
 			int32 index = FMath::RandRange(0, 1);
 			FString sectionName = FString::Printf(TEXT("Damage%d"), index);
-			anim->PlayDamageAnim(FName(*sectionName));
+			me->PlayAnimMontage(damagedMontage, 1.0f, FName(*sectionName));
 			break;
 		}
 		case EEnemyState::Attack:
@@ -376,46 +375,45 @@ bool UEnemyFSM::TargetTrace(FVector start, FVector end)
 	return false;
 }
 
-void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
-{
-	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);
-	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);
-
-	if (bHit)  // LineTrace가 충돌했으면
-	{
-		if (hitInfo.GetActor()->GetName().Contains(TEXT("Player")))  // 충돌한 액터에 Player라는 글자가 있으면
-		{
-			if (s1 == EEnemyState::Chase)  // 매개변수로 받은 Enum 변수가 s1 이면
-			{
-				mState = s1;  // Chase 상태로 전환
-				currentTime = 0;  // 누적 시간 초기화
-				anim->animState = mState;  // 애니메이션 동기화
-			}
-		}
-		else  // Player라는 글자가 없으면
-		{
-			if (s2 == EEnemyState::None)  // State가 None 이면
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *(hitInfo.GetActor()->GetName()));
-			}
-			else if (s2 == EEnemyState::Idle)
-			{
-				mState = s2;
-				currentTime = 0;
-				anim->animState = mState;
-			}
-			else if (s2 == EEnemyState::Move)
-			{
-				mState = s2;  // Move 상태로 전환
-				currentTime = 0;  // 누적된 시간을 초기화
-				anim->animState = mState;  // 애니메이션 동기화
-				GetRandomPositionInNavMesh(originPos, 500, randomPos);  // 최초 랜덤 위치 정해주기
-			}
-			else if (s2 == EEnemyState::Look)
-			{
-				mState = s2;
-				currentTime = 0;
-			}
-		}
-	}
-}
+// void UEnemyFSM::IsTargetTrace(FVector start, FVector end, EEnemyState s1, EEnemyState s2)
+//{
+// 	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);
+// 	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);
+// 
+// 	if (bHit)  // LineTrace가 충돌했으면
+// 	{
+// 		if (hitInfo.GetActor()->GetName().Contains(TEXT("Player")))  // 충돌한 액터에 Player라는 글자가 있으면
+// 		{
+// 			if (s1 == EEnemyState::Chase)  // 매개변수로 받은 Enum 변수가 s1 이면
+// 			{
+// 				mState = s1;  // Chase 상태로 전환
+// 				currentTime = 0;  // 누적 시간 초기화
+// 				anim->animState = mState;  // 애니메이션 동기화
+// 			}
+// 		}
+// 		else  // Player라는 글자가 없으면
+// 		{
+// 			if (s2 == EEnemyState::None)  // State가 None 이면
+// 			{
+// 				UE_LOG(LogTemp, Warning, TEXT("%s"), *(hitInfo.GetActor()->GetName()));
+// 			}
+// 			else if (s2 == EEnemyState::Idle)
+// 			{
+// 				mState = s2;
+// 				currentTime = 0;
+// 				anim->animState = mState;
+// 			}
+// 			else if (s2 == EEnemyState::Move)
+// 			{
+// 				mState = s2;  // Move 상태로 전환
+// 				currentTime = 0;  // 누적된 시간을 초기화
+// 				anim->animState = mState;  // 애니메이션 동기화
+// 			}
+// 			else if (s2 == EEnemyState::Look)
+// 			{
+// 				mState = s2;
+// 				currentTime = 0;
+// 			}
+// 		}
+// 	}
+//}
