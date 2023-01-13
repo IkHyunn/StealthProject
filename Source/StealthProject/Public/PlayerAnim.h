@@ -35,6 +35,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = PlayerAnim)
 	bool isBow = false;  // 활 들었는지
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = PlayerAnim)
+	bool isKal = false;  // 칼 들었는지
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isCrouched = false;   //  웅크렷는지
 
@@ -54,12 +57,17 @@ public:
 		class UAnimMontage* BowAimAnimMontage;   // 활시위 몽타주
 	void PlayBowAimAnim();    // 활시위  애니메이션 재생 함수 
 
-	//UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	//	class UAnimMontage* DamageMontage;   // 맞는 몽타주
-	//void PlayDamageAnim(FName sectionName);    // 맞기 애니메이션 재생 함수  
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* KalAimAnimMontage;   // 칼공격 몽타주
+	void PlayKalAimAnim();    // 칼공격  애니메이션 재생 함수 
 
-	UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주
-	void PlayDamageAnim(FName sectionName);    // 맞기 애니메이션 재생 함수
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* DamageMontage;   // 피격 몽타주
+	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수  
+
+	//UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주
+	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수
 
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void OnAttackAnimation();

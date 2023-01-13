@@ -53,8 +53,8 @@ void AKal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Pickup Kal"));
 		character->bgetKal = true;      //  Ä®¿©ºÎ = true, trueÀÏ ¶§¸¸ 3¹ø Å°¸¦ ´©¸¦ ¼ö ÀÖÀ½.
-		character->anim->isBow = true;  //   Ä® ¾Ö´Ô = true
 		character->ChangeToKal();   //  Ä® ÇÔ¼öÈ£Ãâ
+		character->anim->isKal = true;  //   Ä® ¾Ö´Ô = true
 		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô no
 
 		Destroy();

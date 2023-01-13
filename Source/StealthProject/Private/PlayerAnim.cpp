@@ -57,12 +57,17 @@ void UPlayerAnim::PlayBowAimAnim()
 	Montage_Play(BowAimAnimMontage);
 }
 
+// 칼공격 애니메이션 몽타주 재생 함수 
+void UPlayerAnim::PlayKalAimAnim()
+{
+	Montage_Play(KalAimAnimMontage);
+}
 // 맞는 애니메이션 몽타주 재생 함수 
-//void UPlayerAnim::PlayDamageAnim()
-//{
-//	Montage_Play(DamageMontage);
-//}
-// 
+// void UPlayerAnim::PlayDamageAnim(FName sectionName)
+// {
+// 	Montage_Play(DamageMontage);
+// }
+ 
 void UPlayerAnim::OnAttackAnimation()
 {
 	isPlayerAttack = true;  

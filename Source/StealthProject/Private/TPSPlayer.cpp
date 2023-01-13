@@ -164,10 +164,10 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("Vertical"), this, &ATPSPlayer::InputVertical);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ATPSPlayer::InputJump);   // 점프 
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 발사 
-	PlayerInputComponent->BindAction(TEXT("NoEquipped"), IE_Pressed, this, &ATPSPlayer::ChangeToNoEquipped);   // 주먹
+	PlayerInputComponent->BindAction(TEXT("NoEquipped"), IE_Pressed, this, &ATPSPlayer::ChangeToNoEquipped);   // 1번 주먹
 	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToPistol);   // 권총 2번
 	PlayerInputComponent->BindAction(TEXT("Bow"), IE_Pressed, this, &ATPSPlayer::ChangeToBow); // 활 3번
-	PlayerInputComponent->BindAction(TEXT("Bow"), IE_Pressed, this, &ATPSPlayer::ChangeToKal); // 칼 4번
+	PlayerInputComponent->BindAction(TEXT("Kal"), IE_Pressed, this, &ATPSPlayer::ChangeToKal); // 칼 4번
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    // 조준 
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); // 달리기
@@ -212,8 +212,8 @@ void ATPSPlayer::Move()
 void ATPSPlayer::InputRun() // MaxWalkSpeed 설정      
 {
 	auto movement = GetCharacterMovement();
-	if (bNoEquipped == true)    // 맨주먹이면 달리고 
-	{
+// 	if (bNoEquipped == true)    // 맨주먹이면 달리고 
+// 	{
 		if (movement->MaxWalkSpeed > walkSpeed)
 		{
 			movement->MaxWalkSpeed = walkSpeed;   //걷는 속도
@@ -222,8 +222,8 @@ void ATPSPlayer::InputRun() // MaxWalkSpeed 설정
 		{
 			movement->MaxWalkSpeed = runSpeed;     //달리는 속도
 		}
-	}
-	else return;
+//	}
+//	else return;
 }
 
 void ATPSPlayer::InputCrouch()   // 웅크리기
@@ -253,10 +253,18 @@ void ATPSPlayer::InputFire()  //
 		if (currentTime > attackDelayTime)  // 일정시간이 지나야 
 		{
 			anim->isPlayerAttack = true;  // 어택애님 True
-			anim->PlayPunchAnim();   // 펀치애님실행하기
+			//anim->PlayPunchAnim();   // 펀치애님실행하기
 			currentTime = 0; // 시간초기화
 			return;
 		}
+	}
+	// 칼이면
+	if (kalComp->IsVisible() == true)
+	{
+		anim->PlayKalAimAnim();  //칼 애님 실행 
+		//anim-> = true;  // 
+
+		// LineTrace();  // 권총 라인트레이스 
 	}
 	//권총이고 총알이 잇으면
 	if ((pistolComp->IsVisible() == true) && (currentBullet > 0))    
@@ -270,6 +278,9 @@ void ATPSPlayer::InputFire()  //
 		anim->PlayBowAimAnim();  //활 애님 실행 
 		LineTrace();  // 권총 라인트레이스 
 	}
+	
+
+
 }
 
 void ATPSPlayer::ChangeToNoEquipped()    //주먹 -1번 
@@ -282,7 +293,8 @@ void ATPSPlayer::ChangeToNoEquipped()    //주먹 -1번
 	// 애님실행여부
 	bNoEquipped = true;  // 주먹애님 = yes
 	anim->isGunEquipped = false;       // 권총애님 = no
-	                                   // 칼애님 = no  !!!
+	anim->isKal = false;  // 칼애님  no
+
 
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  // 속도를 걷는 속도로
 }
@@ -295,14 +307,15 @@ void ATPSPlayer::ChangeToPistol()   // 권총으로 -2번
 	{
 		//보이기 여부
 		pistolComp->SetVisibility(true);   //권총 yes
+		kalComp->SetVisibility(false);   //칼 no
 		bowComp->SetVisibility(false);   //활 no
 		_crosshairUI->AddToViewport();    // 크로스헤어 yes
 
 		// 애님실행여부
-		anim->isGunEquipped = true;  // 권총 
+		anim->isBow = false;  // 활 no
 		bNoEquipped = false;  // 맨주먹 no
-
-
+		anim->isGunEquipped = true;  // 권총 yes
+		anim->isKal = false;  // 칼 no
 		GetCharacterMovement()->MaxWalkSpeed=300;  // 걷는 속도
 		
 	}
@@ -319,8 +332,10 @@ void ATPSPlayer::ChangeToBow()   // 활 - 3번키
 		_crosshairUI->AddToViewport();    // 크로스헤어 yes
 
 		// 애님실행여부
+		anim->isBow = true;  // 활 yes
 		bNoEquipped = false;  // 맨주먹 no
 		anim->isGunEquipped = false;  // 권총 no
+		anim->isKal = false;  // 칼 no
 	}
 }
 
@@ -335,9 +350,11 @@ void ATPSPlayer::ChangeToKal()   // 칼 - 4번키
 		_crosshairUI->RemoveFromParent(); // 크로스헤어 UI no
 
 		// 애님실행여부
+		anim->isBow = false;  // 활 no
 		bNoEquipped = false;  // 맨주먹 no
 		anim->isGunEquipped = false;  // 권총 no
-						      // 칼애님실행    !!!!
+		anim->isKal = true;  // 칼 yes
+
 	}
 }
 
@@ -439,8 +456,8 @@ void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Player Dead!"));
 			// 죽음 몽타주 재생
-			anim->PlayDamageAnim(TEXT("Die"));
-
+			this->PlayAnimMontage(anim->DamageMontage, 1.0f, FName(TEXT("Die")));
+			//anim->PlayDamageAnim(TEXT("Die"));
 
 			OnGameOver();  // 게임 오버 함수 호출
 			 
@@ -450,8 +467,8 @@ void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 			// 피격 몽타주 랜덤하게 재생
 			int32 index = FMath::RandRange(0, 1);
 			FString sectionName = FString::Printf(TEXT("Damage%d"), index);
-			anim->PlayDamageAnim(FName(*sectionName));  // 피격 몽타주실행하기
-
+			this->PlayAnimMontage(anim->DamageMontage, 1.0f, FName(*sectionName));
+			//anim->PlayDamageAnim(FName(*sectionName));  // 피격 몽타주실행하기
 		}
 }
 
