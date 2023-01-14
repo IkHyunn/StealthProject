@@ -17,131 +17,133 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;  
 
-public:
-	// 암 
-	UPROPERTY(VisibleAnywhere, Category = Camera)  
+public:  // 메시, 컬리젼
+	
+	UPROPERTY(VisibleAnywhere, Category = Camera)  // 암 
 	class USpringArmComponent* springArmComp;     
 	                                             
-	// 카메라 
-	UPROPERTY(VisibleAnywhere,  BlueprintReadOnly, Category = Camera)   
+	UPROPERTY(VisibleAnywhere,  BlueprintReadOnly, Category = Camera)   // 카메라 
 	class UCameraComponent* tpsCamComp;     
-
-	// 총알공장
-	UPROPERTY(EditDefaultsOnly, Category=BulletFactory)   
-	TSubclassOf<class ABullet>bulletFactory;   
-
-	// 총 메시
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  // 총 메시
 	class USkeletalMeshComponent* pistolComp;
-
-	// 활 메시
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  // 활 메시
 	class USkeletalMeshComponent* bowComp;
 
-	// 칼 메시
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)   // 칼 메시
 	class USkeletalMeshComponent* kalComp;
 
-		
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* compBox;      // 손컬리젼 ??
 
 
-	bool bNoEquipped = true;   // 주먹모드
-	bool bSniperAim = false;     // 스나이퍼조준모드
-	FHitResult hitInfo;    // 충돌정보
+public: // 공장들, 위젯들, subclass
+	UPROPERTY(EditDefaultsOnly, Category=BulletFactory)   // 총알공장
+		TSubclassOf<class ABullet>bulletFactory;   
 
 	UPROPERTY(EditDefaultsOnly, Category = SniperUI)   // 스나이퍼위젯공장
-	TSubclassOf<class UUserWidget> sniperUIFactory;     
+		TSubclassOf<class UUserWidget> sniperUIFactory;     
 
 	UPROPERTY(EditAnywhere, Category = BulletEffect)   //총알 파편효과 공장
 		class UParticleSystem* bulletEffectFactory;  
 
 	UPROPERTY(EditDefaultsOnly, Category = SniperUI)   // 크로스헤어 위젯공장
-	TSubclassOf<class UUserWidget> crosshairUIFactory;
+		TSubclassOf<class UUserWidget> crosshairUIFactory;
+
+	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     // 카메라세이크 
+		TSubclassOf<class UCameraShakeBase> cameraShake;
+
+	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
+		class USoundBase* bulletSound;
 
 	UPROPERTY()
 		class UUserWidget* _sniperUI;          // 스나이퍼위젯
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UUserWidget* _crosshairUI;     // 크로스헤어위젯
+
+
+public: // 시간, 속도, hp  변수 등..
 		
+	float currentTime = 0;                     // 시간
+	FVector direction = FVector::ZeroVector;  
+
+	UPROPERTY(EditAnywhere)                 // 현재 총알개수
+		int32 currentBullet = 0;
+
+	UPROPERTY(EditAnywhere)                 // 공격 딜레이시간
+		float attackDelayTime = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Health)    // 현재 HP
+		int32 HP;  
+
+	UPROPERTY(EditDefaultsOnly, Category = Health)    // 최초 HP
+		int32 initialHP = 5;  
+
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 걷기 속도
 		float walkSpeed = 375;                 
 	
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 달리기 속도
 		float runSpeed = 600;
 
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)
-		float crouchSpeed = 200;                            //웅크리기 속도
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)     //웅크리기 속도
+		float crouchSpeed = 200;                           
+
+// 캐스트 변수들
 
 	UPROPERTY()
-		class UPlayerAnim* anim;                         // 애님변수
-
-	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     // 카메라세이크 
-		TSubclassOf<class UCameraShakeBase> cameraShake;
+		class UPlayerAnim* anim;                         // 플레이어 애니메이션 캐스트
 
 	UPROPERTY(EditAnywhere)
-		int32 currentBullet = 0;
+		class AIH_Enemy* backEnemy = nullptr;            // 에너미
 		
-// 가짐여부
-	UPROPERTY(EditAnywhere)  // 총 가짐여부
-		bool bgetGun = false;
-
-	UPROPERTY(EditAnywhere)  // 활 가짐여부
-		bool bgetbow = false;
-
-	UPROPERTY(EditAnywhere)  // 칼 가짐여부
-		bool bgetKal = false;
+	FHitResult hitInfo;    // 충돌정보
 
 
+// 무기 아이템 보이기 여부판정위한
+	UPROPERTY(EditAnywhere) 
+		bool bgetGun = false;    // 총 가짐여부
 
-	UPROPERTY(EditDefaultsOnly, Category=Sound)   //총알 발사 사운드
-		class USoundBase* bulletSound;
+	UPROPERTY(EditAnywhere)  
+		bool bgetbow = false;   // 활 가짐여부
+
+	UPROPERTY(EditAnywhere)  
+		bool bgetKal = false;  // 칼 가짐여부
+
+		bool bPunch = false;   // 펀치 가짐여부   (실물없고 1번 눌렀을 때)
+
+		bool bSniperAim = false;    // 스나이퍼조준모드   ???
 
 // 	UPROPERTY(EditAnywhere)
 // 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
 
 	UPROPERTY(EditAnywhere)
-		class AIH_Enemy* backEnemy = nullptr; 
-
-	UPROPERTY(EditAnywhere)
 		bool isOnAttack = false;   
 
-	float currentTime = 0;
+	
 
-	UPROPERTY(EditAnywhere)
-		float attackDelayTime = 2.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = Health)
-		int32 HP;  // 현재 HP
-
-	UPROPERTY(EditDefaultsOnly, Category = Health)
-		int32 initialHP = 5;  // 최초 HP
-
-	UPROPERTY(EditAnywhere)
-		class UBoxComponent* compBox;
-
-	FVector direction = FVector::ZeroVector;  
-
+public: //  함수
 	void Turn(float value);   
 	void LookUp(float value);    
 	void InputHorizontal(float value); 
 	void InputVertical(float value);    
+	void Move();      // 이동
 	void InputJump();   
-	void Move();      // 무브
-	void InputFire();   //  발사
+	void InputFire();   //  발사 
 	void InputRun();   //  달리기
 	void InputCrouch(); // 숙이기
 //	void InputAttack(); // 공격
+	void SniperAim();     //조준
 	void InputAssasinate();  // 암살
-	void fireEffect(); // 총 이펙트  
-	void LineTrace();  // 라인트레이스
-	void ChangeToNoEquipped();    // 주먹
+	void ChangeToPunch();    // 주먹
 	void ChangeToPistol();     // 권총
 	void ChangeToBow();    // 활
 	void ChangeToKal();    // 칼
-	void SniperAim();     //조준
+	void fireEffect(); // 총 이펙트  
+	void LineTrace();  // 라인트레이스
 
-
+// UFUNCTION
 	UFUNCTION(BlueprintCallable, Category = Health)
 		void OnHitEvent();  // 피격 이벤트
 	UFUNCTION(BlueprintCallable, Category = Health)

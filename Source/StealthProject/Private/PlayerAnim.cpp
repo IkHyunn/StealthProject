@@ -62,11 +62,21 @@ void UPlayerAnim::PlayKalAimAnim()
 {
 	Montage_Play(KalAimAnimMontage);
 }
-// 맞는 애니메이션 몽타주 재생 함수 
+
+// 데미지 받고 죽는 함수  ???
+//void UPlayerAnim::PlayDamageDieAnim()
+//{
+//	Montage_Play(DamageDieMontage); 
+//}
+
+// 피격 애니메이션 몽타주 재생 함수    ????
 // void UPlayerAnim::PlayDamageAnim(FName sectionName)
 // {
 // 	Montage_Play(DamageMontage);
 // }
+
+
+
  
 void UPlayerAnim::OnAttackAnimation()
 {

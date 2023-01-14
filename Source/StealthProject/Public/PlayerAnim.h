@@ -3,7 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-
 #include "PlayerAnim.generated.h"
 
 /**
@@ -30,6 +29,9 @@ public:
 	bool isInAir = false;     // 공중에 있는지
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isPunch = false;     // 펀치 들었는지
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isGunEquipped = false;  // 총 들었는지
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = PlayerAnim)
@@ -50,8 +52,8 @@ public:
 	void PlayAssasinateAnim();  // 암살 애니메이션 재생 함수
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	class UAnimMontage* punchAnimMontage;   // 주먹질 몽타주
-	void PlayPunchAnim();    // 주먹질 애니메이션 재생 함수
+	class UAnimMontage* punchAnimMontage;   // 펀치 몽타주
+	void PlayPunchAnim();    // 펀치 애니메이션 재생 함수
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* BowAimAnimMontage;   // 활시위 몽타주
@@ -63,11 +65,16 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-		class UAnimMontage* DamageMontage;   // 피격 몽타주
-	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수  
+		class UAnimMontage* DamageDieMontage;   // 피격 몽타주
+	//void PlayDamageDieAnim();    // 피격 (& 죽음) 애니메이션 재생 함수  ??
 
-	//UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주
-	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수
+	//UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주  ??
+	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수  ??
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+		bool isDieDone = false;  //  죽음상태 애니메이션 종료여부
+
+
 
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void OnAttackAnimation();
