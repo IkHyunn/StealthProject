@@ -139,7 +139,7 @@ void ATPSPlayer::BeginPlay()
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      //스나이퍼 ui 생성
 	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어 ui 생성 
 	_crosshairUI->RemoveFromParent();  // 크로스헤어 안보이게
-
+	compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::OnOverlap);  // 오버랩
 }
 
@@ -150,6 +150,7 @@ void ATPSPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	Move();   // 이동
 	currentTime += DeltaTime;  // 시간누적  필요한가??
+
 }
 
 
@@ -255,7 +256,7 @@ void ATPSPlayer::InputFire()
 		if (currentTime > attackDelayTime)
 		{
 			//anim->isPunch = true;
-			compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+			compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 			anim->PlayPunchAnim();   // 펀치애님실행하기
 
 			currentTime = 0;
@@ -426,7 +427,6 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 		FCollisionQueryParams params;
 		params.AddIgnoredActor(this);
 
-		AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());
 		bool bHit = GetWorld()->LineTraceSingleByChannel(hitBack, GetActorLocation(), GetActorLocation()+GetActorForwardVector()*250, ECC_Visibility, params);
 		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation()+GetActorForwardVector()*250,FColor::Red, false, 1.0f, 0, 1.0f);
 
@@ -443,7 +443,8 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 
 				SetActorLocation(playerPos);
 				SetActorRotation(backEnemy->GetActorRotation());
-	
+
+				bUseControllerRotationYaw = false;	
 				anim->PlayAssasinateAnim();
 
 				backEnemy->fsm->OnBackAttack();
@@ -545,10 +546,7 @@ void ATPSPlayer::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		{
 			if (enemy->fsm->HP > 0)
 			{
-				if (isOnAttack == true)
-				{
-					enemy->fsm->OnDamageProcess();
-				}
+				enemy->fsm->OnDamageProcess();
 			}
 		}
 	}

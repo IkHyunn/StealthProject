@@ -204,7 +204,6 @@ void UEnemyFSM::AttackState()
 void UEnemyFSM::OnDamageProcess()
 {
 	HP--;
-	isDamaged = true;
 
 	if (HP > 0)  // HP가 0 이상이면
 	{

@@ -71,6 +71,8 @@ void AIH_Enemy::BeginPlay()
 	Super::BeginPlay();
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnBackOverlap);
 	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnBackEndOverlap);
+
+	compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	compHandBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnHandOverlap);
 }
 
@@ -123,12 +125,9 @@ void AIH_Enemy::OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		
 		if (character != nullptr)
 		{
-			if (fsm->anim->isOnHit == true)
+			if (character->HP > 0)
 			{
-				if (character->HP > 0)
-				{
-					character->OnHitEvent();
-				}
+				character->OnHitEvent();
 			}
 		}
 	}
