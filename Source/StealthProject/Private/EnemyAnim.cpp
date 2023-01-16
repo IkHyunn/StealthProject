@@ -38,7 +38,7 @@ void UEnemyAnim::AnimNotify_DieEnd()
 
 void UEnemyAnim::AnimNotify_OnAttack()
 {
-	me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	//me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
 void UEnemyAnim::AnimNotify_AttackEnd()
