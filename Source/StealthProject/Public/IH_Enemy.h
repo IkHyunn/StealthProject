@@ -46,6 +46,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* compSpine;
 
+	UPROPERTY(EditAnywhere)
+	class UCameraComponent* assasinateCam;
+
  	UFUNCTION()
  	void OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

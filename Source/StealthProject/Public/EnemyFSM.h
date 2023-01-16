@@ -13,6 +13,7 @@ enum class EEnemyState : uint8
 	Move,
 	Chase,
 	Attack,
+//	AttackDelay,
 	Damage,
 	Die,
 	Return,
@@ -49,6 +50,7 @@ public:
 	void DieState();  // 죽음 상태
 	void ReturnState();  // 제자리로 돌아가는 상태
 	void LookState();
+//	void AttackDelayState();
 
 	void OnDamageProcess();
 	void OnBackAttack();
@@ -62,11 +64,11 @@ public:
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = FSM)
-	float idleDelayTime = 3;	// 대기 시간
+	float idleDelayTime = 5;	// 대기 시간
 	float currentTime = 0;		// 경과 시간
 	float moveDelayTime = 1;	// 움직임 대기 시간
 	float lookDelayTime = 4;  // 둘러보는 시간
-	float attackDelayTime = 2;
+	float attackDelayTime = 3;
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 	class ATPSPlayer* target;		// 플레이어를 타겟으로 설정

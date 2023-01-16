@@ -41,6 +41,7 @@ AIH_HPItem::AIH_HPItem()
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);
+		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	}
 }
 
@@ -52,6 +53,7 @@ void AIH_HPItem::BeginPlay()
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
 	compWidget->SetVisibility(false);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnSphereOverlap);
+	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_HPItem::OnSphereEndOverlap);
 }
 
 // Called every frame
@@ -81,5 +83,15 @@ void AIH_HPItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	if (character != nullptr)
 	{
 		compWidget->SetVisibility(true);
+	}
+}
+
+void AIH_HPItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(false);
 	}
 }

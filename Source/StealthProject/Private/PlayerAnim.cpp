@@ -4,17 +4,32 @@
 #include "TPSPlayer.h"     
 #include <GameFramework/CharacterMovementComponent.h>    
 #include <GameFramework/Actor.h>
+#include "../StealthProjectGameModeBase.h"
+#include <GameFramework/Pawn.h>
+#include <Components/BoxComponent.h>
+#include <GameFramework/PlayerController.h>
 
+UPlayerAnim::UPlayerAnim()
+{
+	ConstructorHelpers::FClassFinder<UCameraShakeBase> tempShake(TEXT("Blueprint'/Game/Wise/Blueprints/BP_CamerShake.BP_CamerShake_C'"));
+	if (tempShake.Succeeded())
+	{
+		cameraShake = tempShake.Class;
+	}
+}
 
+void UPlayerAnim::NativeBeginPlay()
+{
+	Super::NativeBeginPlay();
 
+	ownerPawn = TryGetPawnOwner();      // 소유폰 
+	player = Cast<ATPSPlayer>(ownerPawn);    // 플레이어 캐스트
+}
 
 void UPlayerAnim::NativeUpdateAnimation(float DeltaSeconds)    // [Event BLueprint Update Animation] 노드와 같은기능
 {
 // 플레이어의 이동속도를 가져와 SPEED에 할당하고 싶다
 Super::NativeUpdateAnimation(DeltaSeconds);    // 부모 실행
-
-auto ownerPawn = TryGetPawnOwner();      // 소유폰 
-auto player = Cast<ATPSPlayer>(ownerPawn);    // 플레이어 캐스트
 
 if (player)   
 	{
@@ -75,8 +90,44 @@ void UPlayerAnim::PlayKalAimAnim()
 // 	Montage_Play(DamageMontage);
 // }
 
+void UPlayerAnim::AnimNotify_PlayerAttack()
+{
+	player->isOnAttack = false;
+	player->compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+}
 
+// AttackEnd 애님 노티파이
+void UPlayerAnim::AnimNotify_PlayerAttackEnd()
+{
+	player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
 
+void UPlayerAnim::AnimNotify_Crack()
+{
+	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
+	playerController->PlayerCameraManager->StartCameraShake(cameraShake);
+
+	playerController->SetViewTargetWithBlend(player, 0.5);
+}
+
+void UPlayerAnim::AnimNotify_AssasinateEnd()
+{
+	player->SetActorLocation(player->GetActorLocation()+player->GetActorForwardVector()*180);
+	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
+	player->EnableInput(playerController);
+}
+
+// DamageEnd 애님 노티파이
+void UPlayerAnim::AnimNotify_DamageEnd()
+{
+	player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+// DieEnd 애님 노티파이
+void UPlayerAnim::AnimNotify_DieEnd()
+{
+	CallGameOver();
+}
  
 void UPlayerAnim::OnAttackAnimation()
 {
@@ -86,4 +137,10 @@ void UPlayerAnim::OnAttackAnimation()
 void UPlayerAnim::EndAttackAnimation()
 {
 	isPlayerAttack = false;
+}
+void UPlayerAnim::CallGameOver()
+{
+	AStealthProjectGameModeBase* gameMode = GetWorld()->GetAuthGameMode< AStealthProjectGameModeBase>();
+
+	gameMode->ShowGameOverUI();
 }

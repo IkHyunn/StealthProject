@@ -9,6 +9,7 @@
 #include "TPSPlayer.h"
 #include <GameFramework/CharacterMovementComponent.h>
 #include "EnemyAnim.h"
+#include <Camera/CameraComponent.h>
 
 // Sets default values
 AIH_Enemy::AIH_Enemy()
@@ -35,9 +36,9 @@ AIH_Enemy::AIH_Enemy()
 
 	// BehindBox 컴포넌트 추가
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BehindBox"));
-	compBox->SetBoxExtent(FVector(20, 40, 50));
+	compBox->SetBoxExtent(FVector(20, 25, 50));
 	compBox->SetupAttachment(RootComponent);
-	compBox->SetRelativeLocation(FVector(-70, 0, 0));
+	compBox->SetRelativeLocation(FVector(-60, 0, 0));
 
 
 	// HandBox 컴포넌트 추가
@@ -59,6 +60,9 @@ AIH_Enemy::AIH_Enemy()
 	// Perception Scene Component 추가
 	compSpine = CreateDefaultSubobject<USceneComponent>(TEXT("PelvisPerception"));
 	compSpine->SetupAttachment(GetMesh(), TEXT("SpinePerception"));
+
+	assasinateCam = CreateDefaultSubobject<UCameraComponent>(TEXT("AssasinateCam"));
+	assasinateCam->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -85,14 +89,14 @@ void AIH_Enemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AIH_Enemy::OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//auto actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Player::StaticClass());
 	if (OtherActor != this)
 	{
 		character = Cast<ATPSPlayer>(OtherActor);
 
 		if (character != nullptr)
 		{
-			character->backEnemy = this;
+			character->isBack = true;
+			//character->backEnemy = this;
 		}
 	}
 }
@@ -105,7 +109,8 @@ void AIH_Enemy::OnBackEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 		if (character != nullptr)
 		{
-			character->backEnemy = nullptr;
+			character->isBack = false;
+			//character->backEnemy = nullptr;
 		}
 	}
 }
@@ -120,7 +125,10 @@ void AIH_Enemy::OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		{
 			if (fsm->anim->isOnHit == true)
 			{
-			character->OnHitEvent();
+				if (character->HP > 0)
+				{
+					character->OnHitEvent();
+				}
 			}
 		}
 	}

@@ -6,6 +6,9 @@
 #include <Components/SkeletalMeshComponent.h>
 #include "TPSPlayer.h"
 #include "PlayerAnim.h"
+#include <Components/SphereComponent.h>
+#include <Components/WidgetComponent.h>
+#include <Blueprint/UserWidget.h>
 
 // Sets default values
 AIH_Knife::AIH_Knife()
@@ -19,6 +22,7 @@ AIH_Knife::AIH_Knife()
 	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bow"));
 	compMesh -> SetupAttachment(compBox);
 	compMesh->SetRelativeLocation(FVector(-210.017793, -10.000000, 0.000002));
+	compMesh->SetRelativeRotation(FRotator(0, 0, -90));
 	compMesh->SetRelativeScale3D(FVector(1));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -26,6 +30,21 @@ AIH_Knife::AIH_Knife()
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetSkeletalMesh(tempMesh.Object);
+	}
+
+	compSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	compSphere->SetupAttachment(RootComponent);
+	compSphere->SetSphereRadius(450);
+
+	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
+	compWidget->SetupAttachment(RootComponent);
+	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	if (tempWidget.Succeeded())
+	{
+		compWidget->SetWidgetClass(tempWidget.Class);
+		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	}
 }
 
@@ -35,6 +54,9 @@ void AIH_Knife::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Knife::OnOverlap);
+	compWidget->SetVisibility(false);
+	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Knife::OnSphereOverlap);
+	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Knife::OnSphereEndOverlap);
 }
 
 // Called every frame
@@ -58,5 +80,25 @@ void AIH_Knife::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô no
 
 		Destroy(); 
+	}
+}
+
+void AIH_Knife::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(true);
+	}
+}
+
+void AIH_Knife::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(false);
 	}
 }

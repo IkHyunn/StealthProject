@@ -14,9 +14,20 @@ class STEALTHPROJECT_API UPlayerAnim : public UAnimInstance
 	GENERATED_BODY()
 
 public:
+	UPlayerAnim();
+
+protected:
+	virtual void NativeBeginPlay() override;
+
+public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;   // 매프레임 갱신되는 함수
 
+	UPROPERTY()
+	class APawn* ownerPawn;
+
+	UPROPERTY()
+	class ATPSPlayer* player;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)    //플레이어 이동속도 
 	float speed = 0;      
@@ -66,15 +77,14 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* DamageDieMontage;   // 피격 몽타주
+
 	//void PlayDamageDieAnim();    // 피격 (& 죽음) 애니메이션 재생 함수  ??
 
 	//UFUNCTION(BlueprintImplementableEvent, Category = FSMEvent)   // 맞는 몽타주  ??
 	//void PlayDamageAnim(FName sectionName);    // 피격 애니메이션 재생 함수  ??
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
-		bool isDieDone = false;  //  죽음상태 애니메이션 종료여부
-
-
+	bool isDieDone = false;  //  죽음상태 애니메이션 종료여부
 
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void OnAttackAnimation();
@@ -82,7 +92,31 @@ public:
 	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
 	void EndAttackAnimation();
 
+	UFUNCTION(BlueprintCallable, Category = PlayerAnim)
+	void CallGameOver();
+
+	UFUNCTION()
+	void AnimNotify_AssasinateEnd();
+
+	UFUNCTION()
+	void AnimNotify_PlayerAttack();
+
+	UFUNCTION()
+	void AnimNotify_DamageEnd();
+
+	UFUNCTION()
+	void AnimNotify_PlayerAttackEnd();
+
+	UFUNCTION()
+	void AnimNotify_DieEnd();
+
+	UFUNCTION()
+	void AnimNotify_Crack();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isPlayerAttack = false;
+
+	UPROPERTY(EditDefaultsOnly) 
+	TSubclassOf<class UCameraShakeBase> cameraShake;
 
 };

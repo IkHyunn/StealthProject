@@ -12,6 +12,7 @@
 #include "TPSPlayer.h"
 #include <Kismet/KismetMathLibrary.h>
 #include <GameFramework/CharacterMovementComponent.h>
+#include <Components/BoxComponent.h>
 
 // Sets default values for this component's properties
 UEnemyFSM::UEnemyFSM()
@@ -76,6 +77,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	case EEnemyState::Look:
 		LookState();
 		break;
+// 	case EEnemyState::AttackDelay:
+// 		AttackDelayState();
+// 		break;
 	}
 
 	// 적이 바라보는 방향과 적과 타겟 사이의 방향간의 사이각 구하기
@@ -149,24 +153,44 @@ void UEnemyFSM::ChaseState()
 	}
 }
 
+// void UEnemyFSM::AttackDelayState()
+// {
+// 	// 일정 시간마다 한번씩 공격
+// 	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
+// 	{
+// 		if (AngleDegree < 45)
+// 		{
+// 			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+// 			ChangeState(EEnemyState::Attack);
+// 		}
+// 		else
+// 		{
+// 			ChangeState(EEnemyState::Idle);
+// 		}
+// 	}
+// 
+// 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
+// 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
+// 																								// Target과 Me 사이의 거리를 구한다.
+// 	if (distance > attackRange)
+// 	{
+// 		ChangeState(EEnemyState::Chase);
+// 	}
+// }
+
 void UEnemyFSM::AttackState()
 {
-	currentTime += GetWorld()->GetDeltaSeconds();
-
-	// 일정 시간마다 한번씩 공격
-	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
-	{
+// 	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
+// 	{
 		if (AngleDegree < 45)
 		{
 			anim->bAttackPlay = true;
-			anim->isOnHit = true;
-			currentTime = 0;
 		}
 		else
 		{
 			ChangeState(EEnemyState::Idle);
 		}
-	}
+//	}
 
 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
@@ -199,6 +223,8 @@ void UEnemyFSM::OnBackAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	HP = 0;
+	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
+	playerController->SetViewTargetWithBlend(me, 0.5);
 
 	anim->bAttackPlay = false;
 	anim->isOnHit = false;
@@ -334,6 +360,7 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 			break;
 		}
 		case EEnemyState::Attack:
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 			currentTime = attackDelayTime;
 			break;
 		case EEnemyState::Chase:

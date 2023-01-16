@@ -53,6 +53,8 @@ void AStealthProjectGameModeBase::ShowGameOverUI()
 {
 	gameoverUI = CreateWidget<UIH_GameOverUI>(GetWorld(), gameoverWidget);
 	gameoverUI->AddToViewport();
+	UGameplayStatics::SetGamePaused(GetWorld(), true);  // 게임을 멈춘다.
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서를 화면에 띄운다.
 }
 
 void AStealthProjectGameModeBase::ShowMainMenuUI()

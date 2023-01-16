@@ -19,6 +19,12 @@ protected:
 	virtual void NativeBeginPlay() override;
 
 public:
+	UPROPERTY()
+	class AIH_Enemy* me;
+
+	UPROPERTY()
+	class APawn* ownerPawn;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=FSM)
 	EEnemyState animState;		// 애니메이션 블루프린트 안에 EnemyFSM에서 만들었던 animState 열거형 변수를 만든다.
 
@@ -42,6 +48,15 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=FSM)
 	bool bDieDone = false;  // 죽음상태 애니메이션 종료 여부
+
+	UFUNCTION()
+	void AnimNotify_DieEnd();
+
+	UFUNCTION()
+	void AnimNotify_OnAttack();
+
+	UFUNCTION()
+	void AnimNotify_AttackEnd();
 
 	UFUNCTION()
 	void AnimNotify_HangingStart();

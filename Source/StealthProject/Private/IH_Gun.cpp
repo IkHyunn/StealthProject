@@ -6,6 +6,9 @@
 #include <Components/StaticMeshComponent.h>
 #include "TPSPlayer.h"
 #include "PlayerAnim.h"
+#include <Components/WidgetComponent.h>
+#include <Blueprint/UserWidget.h>
+#include <Components/SphereComponent.h>
 
 // Sets default values
 AIH_Gun::AIH_Gun()
@@ -20,6 +23,7 @@ AIH_Gun::AIH_Gun()
 	compMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun"));
 	compMesh -> SetupAttachment(compBox);
 	compMesh -> SetRelativeLocation(FVector(0, -10, 0));
+	compMesh -> SetRelativeRotation(FRotator(-90, 0, 0));
 	compMesh->SetRelativeScale3D(FVector(1.5));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -27,6 +31,21 @@ AIH_Gun::AIH_Gun()
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetSkeletalMesh(tempMesh.Object);
+	}
+
+	compSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	compSphere->SetupAttachment(RootComponent);
+	compSphere->SetSphereRadius(450);
+
+	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
+	compWidget->SetupAttachment(RootComponent);
+	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	if (tempWidget.Succeeded())
+	{
+		compWidget->SetWidgetClass(tempWidget.Class);
+		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	}
 }
 
@@ -36,6 +55,9 @@ void AIH_Gun::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Gun::OnOverlap);
+	compWidget->SetVisibility(false);
+	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Gun::OnSphereOverlap);
+	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Gun::OnSphereEndOverlap);
 }
 
 // Called every frame
@@ -58,4 +80,24 @@ void AIH_Gun::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherA
 		Destroy();
 	}
 	else return;
+}
+
+void AIH_Gun::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(true);
+	}
+}
+
+void AIH_Gun::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		compWidget->SetVisibility(false);
+	}
 }

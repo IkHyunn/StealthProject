@@ -43,7 +43,6 @@ void ADoor::Tick(float DeltaTime)
 		{
 			SetActorRotation(FRotator(0, rotateZ, 0));
 			rotateZ += DeltaTime * 200;
-			currentTime = 0;
 		}
 	}
 }

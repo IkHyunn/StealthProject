@@ -19,19 +19,19 @@ public:
 
 public:  // 메시, 컬리젼
 	
-	UPROPERTY(VisibleAnywhere, Category = Camera)  // 암 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)  // 암 
 	class USpringArmComponent* springArmComp;     
 	                                             
-	UPROPERTY(VisibleAnywhere,  BlueprintReadOnly, Category = Camera)   // 카메라 
+	UPROPERTY(VisibleAnywhere,  BlueprintReadWrite, Category = Camera)   // 카메라 
 	class UCameraComponent* tpsCamComp;     
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  // 총 메시
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = GunMesh)  // 총 메시
 	class USkeletalMeshComponent* pistolComp;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)  // 활 메시
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = GunMesh)  // 활 메시
 	class USkeletalMeshComponent* bowComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GunMesh)   // 칼 메시
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = GunMesh)   // 칼 메시
 	class USkeletalMeshComponent* kalComp;
 
 	UPROPERTY(EditAnywhere)
@@ -88,7 +88,13 @@ public: // 시간, 속도, hp  변수 등..
 		float runSpeed = 600;
 
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     //웅크리기 속도
-		float crouchSpeed = 200;                           
+		float crouchSpeed = 300;                           
+
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)  // 줌 인 시작 거리
+		float zoomIn = 90;
+
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)  // 줌 아웃 시작 거리
+		float zoomOut = 75;
 
 // 캐스트 변수들
 
@@ -111,15 +117,21 @@ public: // 시간, 속도, hp  변수 등..
 	UPROPERTY(EditAnywhere)  
 		bool bgetKal = false;  // 칼 가짐여부
 
-		bool bPunch = false;   // 펀치 가짐여부   (실물없고 1번 눌렀을 때)
+		bool bPunch = true;   // 맨주먹 여부 (시작할 때부터 플레이어는 맨주먹 상태이기 때문에 기본값이 true)
 
 		bool bSniperAim = false;    // 스나이퍼조준모드   ???
 
-// 	UPROPERTY(EditAnywhere)
-// 	bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
+ 	UPROPERTY(EditAnywhere)
+ 		bool isBack = false;  // 뒤에서 공격할 때 사용하는 bool 변수
+
+	UPROPERTY(EditAnywhere)
+		bool bCrouched = false;  // 웅크리고 있는지
 
 	UPROPERTY(EditAnywhere)
 		bool isOnAttack = false;   
+
+	UPROPERTY(EditAnywhere)
+		class APlayerController* playerController;
 
 	
 
