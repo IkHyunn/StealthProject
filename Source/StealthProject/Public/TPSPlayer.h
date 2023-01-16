@@ -37,6 +37,9 @@ public:  // 메시, 컬리젼
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* compBox;      // 손컬리젼 ??
 
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* knifeBox;
+
 
 public: // 공장들, 위젯들, subclass
 	UPROPERTY(EditDefaultsOnly, Category=BulletFactory)   // 총알공장
@@ -73,7 +76,7 @@ public: // 시간, 속도, hp  변수 등..
 		int32 currentBullet = 0;
 
 	UPROPERTY(EditAnywhere)                 // 공격 딜레이시간
-		float attackDelayTime = 2.0f;
+		float attackDelayTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = Health)    // 현재 HP
 		int32 HP;  
@@ -161,5 +164,7 @@ public: //  함수
 	UFUNCTION(BlueprintCallable, Category = Health)
 		void OnGameOver();  // GameOver 이벤트
 	UFUNCTION()
-		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void HandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+		void KnifeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

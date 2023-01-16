@@ -226,7 +226,6 @@ void UEnemyFSM::OnBackAttack()
 	playerController->SetViewTargetWithBlend(me, 0.5);
 
 	anim->bAttackPlay = false;
-	anim->isOnHit = false;
 
 	ChangeState(EEnemyState::Die);
 	me->PlayAnimMontage(damagedMontage, 1.0f, FName(TEXT("Assasinated")));
@@ -280,7 +279,7 @@ void UEnemyFSM::LookState()
 		FHitResult spinehitInfo;
 
 		bool bEyeHit = GetWorld()->LineTraceSingleByChannel(eyehitInfo, startEyePos, eyeForwardPos, ECC_Visibility, params);
-		DrawDebugLine(GetWorld(), startEyePos, eyeForwardPos, FColor::Red, false, 1.0f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), startEyePos, eyeForwardPos, FColor::Red, false, 1.0f, 0, 1.0f);
 
 		if (bEyeHit)
 		{
@@ -291,7 +290,7 @@ void UEnemyFSM::LookState()
 		}
 
 		bool bSpineHit = GetWorld()->LineTraceSingleByChannel(spinehitInfo, startSpinePos, SpineForwardPos, ECC_Visibility, params);
-		DrawDebugLine(GetWorld(), startSpinePos, SpineForwardPos, FColor::Red, false, 1.0f, 0, 1.0f);
+		//DebugLine(GetWorld(), startSpinePos, SpineForwardPos, FColor::Red, false, 1.0f, 0, 1.0f);
 
 		if (bSpineHit)
 		{
@@ -332,16 +331,17 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 	anim->animState = state;  // 애니메이션 상태를 매개변수로 갱신
 	currentTime = 0;  // 현재 시간을 초기화
 	anim->bAttackPlay = false;  // 플레이어 공격 애니메이션 재생x
-	anim->isOnHit = false;  // 플레이어 공격 변수 false
 	ai->StopMovement();
 
 	switch (state)
 	{
 		case EEnemyState::Idle:
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			isLooking = false;
 			break;
 		case EEnemyState::Move:
 		{
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			me->GetCharacterMovement()->MaxWalkSpeed = 200;
 			
 			UNavigationSystemV1* ns = UNavigationSystemV1::GetNavigationSystem(GetWorld());
@@ -352,6 +352,7 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 		}
 		case EEnemyState::Damage:
 		{
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			me->SetActorRotation(UKismetMathLibrary::MakeRotFromXZ(target->GetActorLocation() - me->GetActorLocation(), FVector::UpVector));
 			int32 index = FMath::RandRange(0, 1);
 			FString sectionName = FString::Printf(TEXT("Damage%d"), index);
@@ -363,9 +364,11 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 			currentTime = attackDelayTime;
 			break;
 		case EEnemyState::Chase:
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			me->GetCharacterMovement()->MaxWalkSpeed = 600;
 			break;
 		case EEnemyState::Die:
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 	}
@@ -388,7 +391,7 @@ bool UEnemyFSM::TargetTrace(FVector start, FVector end)
 	if (targetDirection.Length() < 1000 && AngleDegree < 45)
 	{
 		bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, start, end, ECC_Visibility, params);
-		DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 1.0f, 0, 1.0f);
 
 		if (bHit)
 		{
