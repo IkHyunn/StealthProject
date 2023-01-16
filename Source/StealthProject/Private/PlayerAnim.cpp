@@ -92,7 +92,6 @@ void UPlayerAnim::PlayKalAimAnim()
 
 void UPlayerAnim::AnimNotify_PlayerAttack()
 {
-	//player->compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
 // AttackEnd 애님 노티파이
@@ -100,6 +99,7 @@ void UPlayerAnim::AnimNotify_PlayerAttackEnd()
 {
 	player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	player->compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	player->knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
 void UPlayerAnim::AnimNotify_Crack()
@@ -112,7 +112,9 @@ void UPlayerAnim::AnimNotify_Crack()
 
 void UPlayerAnim::AnimNotify_AssasinateEnd()
 {
+	player->bUseControllerRotationYaw=true;
 	player->SetActorLocation(player->GetActorLocation()+player->GetActorForwardVector()*180);
+
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	player->EnableInput(playerController);
 }

@@ -84,7 +84,13 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	// 소켓 컬리젼
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	compBox->SetupAttachment(GetMesh(), TEXT("Hand_Socket"));
-	compBox->SetBoxExtent(FVector(20));
+	compBox->SetBoxExtent(FVector(15));
+	compBox->SetCollisionProfileName(TEXT("Hand"));
+
+	knifeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("knifeBox"));
+	knifeBox->SetupAttachment(GetMesh(), TEXT("Kal_Socket"));
+	knifeBox->SetBoxExtent(FVector(15));
+	knifeBox->SetCollisionProfileName(TEXT("Hand"));
 
 	// 1.위젯클래스
 	ConstructorHelpers::FClassFinder<UUserWidget> _tempsniperUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_SniperUI.WBP_SniperUI_C'"));
@@ -140,7 +146,9 @@ void ATPSPlayer::BeginPlay()
 	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어 ui 생성 
 	_crosshairUI->RemoveFromParent();  // 크로스헤어 안보이게
 	compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::OnOverlap);  // 오버랩
+	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::HandOverlap);  // 오버랩
+	knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	knifeBox->OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::KnifeOverlap);
 }
 
 
@@ -248,7 +256,6 @@ void ATPSPlayer::InputCrouch()   // 웅크리기
 
 void ATPSPlayer::InputFire()  
 {
-	GetCharacterMovement()->DisableMovement();
 
 	// 펀치이면= 1번이 눌러졌을 때만 왼쪽 마우스로 펀치하고 다른 번호를 눌러야 나간다
 	if (bPunch)
@@ -256,6 +263,7 @@ void ATPSPlayer::InputFire()
 		if (currentTime > attackDelayTime)
 		{
 			//anim->isPunch = true;
+			GetCharacterMovement()->DisableMovement();
 			compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 			anim->PlayPunchAnim();   // 펀치애님실행하기
 
@@ -272,7 +280,14 @@ void ATPSPlayer::InputFire()
 	// 칼이면
 	if (kalComp->IsVisible() == true)
 	{
-		anim->PlayKalAimAnim();  //칼 애님 실행 
+		if (currentTime > attackDelayTime)
+		{
+			GetCharacterMovement()->DisableMovement();
+			knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+			anim->PlayKalAimAnim();  //칼 애님 실행 
+
+			currentTime = 0;
+		}
 	}
 
 	//권총이고 총알이 잇으면
@@ -285,6 +300,7 @@ void ATPSPlayer::InputFire()
 	// 활이면
 	if (bowComp->IsVisible() == true)
 	{
+		GetCharacterMovement()->DisableMovement();
 		anim->PlayBowAimAnim();  //활 애님 실행 
 		LineTrace();  // 권총 라인트레이스 
 	}
@@ -428,7 +444,7 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 		params.AddIgnoredActor(this);
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(hitBack, GetActorLocation(), GetActorLocation()+GetActorForwardVector()*250, ECC_Visibility, params);
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation()+GetActorForwardVector()*250,FColor::Red, false, 1.0f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation()+GetActorForwardVector()*250,FColor::Red, false, 1.0f, 0, 1.0f);
 
 		if (bHit)
 		{
@@ -444,7 +460,7 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 				SetActorLocation(playerPos);
 				SetActorRotation(backEnemy->GetActorRotation());
 
-				bUseControllerRotationYaw = false;	
+				bUseControllerRotationYaw = false;
 				anim->PlayAssasinateAnim();
 
 				backEnemy->fsm->OnBackAttack();
@@ -536,7 +552,23 @@ void ATPSPlayer::OnGameOver()
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서를 화면에 띄운다.
 }
 
-void ATPSPlayer::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ATPSPlayer::HandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this)
+	{
+		AIH_Enemy* enemy = Cast<AIH_Enemy>(OtherActor);     // 애너미 캐스트한다
+
+		if (enemy != nullptr)
+		{
+			if (enemy->fsm->HP > 0)
+			{
+				enemy->fsm->OnDamageProcess();
+			}
+		}
+	}
+}
+
+void ATPSPlayer::KnifeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor != this)
 	{
