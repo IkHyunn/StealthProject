@@ -54,9 +54,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isCrouched = false;   //  웅크렷는지
 
-	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-	class UAnimMontage* attackAnimMontage;    // 총 몽타주
-	void PlayAttackAnim();    // 총 애니메이션 재생 함수
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isBowAiming = false;   //  활 조준 중인지
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 	class UAnimMontage* assasinateAnimMontage;  // 암살 몽타주
@@ -66,13 +65,25 @@ public:
 	class UAnimMontage* punchAnimMontage;   // 펀치 몽타주
 	void PlayPunchAnim();    // 펀치 애니메이션 재생 함수
 
+	UPROPERTY(EditAnywhere, Category = PlayerAnim)
+	class UAnimMontage* hookAnimMontage;
+	void PlayHookAnim();
+
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* BowAimAnimMontage;   // 활시위 몽타주
 	void PlayBowAimAnim();    // 활시위  애니메이션 재생 함수 
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
-		class UAnimMontage* KalAimAnimMontage;   // 칼공격 몽타주
-	void PlayKalAimAnim();    // 칼공격  애니메이션 재생 함수 
+		class UAnimMontage* KalAnimMontage;   // 칼공격 몽타주
+	void PlayKalAnim();    // 칼공격  애니메이션 재생 함수 
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* Kal2AnimMontage;   // 칼공격 몽타주
+	void PlayKal2Anim();
+
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* Kal3AnimMontage;   // 칼공격 몽타주
+	void PlayKal3Anim();
 
 
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
@@ -102,6 +113,9 @@ public:
 	void AnimNotify_PlayerAttack();
 
 	UFUNCTION()
+	void AnimNotify_BowAttack();
+
+	UFUNCTION()
 	void AnimNotify_DamageEnd();
 
 	UFUNCTION()
@@ -112,6 +126,9 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_Crack();
+
+	UFUNCTION()
+	void AnimNotify_SaveAttack();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	bool isPlayerAttack = false;

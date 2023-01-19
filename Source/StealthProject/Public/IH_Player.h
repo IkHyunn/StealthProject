@@ -45,7 +45,7 @@ public:
 	void InputVertical(float value);	// 상하 이동 입력 처리
 
 	void InputJump();	// 점프 입력 처리
-	void InputAttack();
+//	void InputAttack();
 
 	void Move();
 

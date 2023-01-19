@@ -48,11 +48,6 @@ if (player)
 	isInAir = movement->IsFalling();    //  공중에 있는지 isInAir
 	}
 }
- // 총 어깨 애니메이션 몽타주 재생 함수 
-void UPlayerAnim::PlayAttackAnim()
-{
-	Montage_Play(attackAnimMontage);
-}
 
 // 암살 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayAssasinateAnim()
@@ -66,6 +61,11 @@ void UPlayerAnim::PlayPunchAnim()
 	Montage_Play(punchAnimMontage);
 }
 
+void UPlayerAnim::PlayHookAnim()
+{
+	Montage_Play(hookAnimMontage);
+}
+
 // 활시위 애니메이션 몽타주 재생 함수 
 void UPlayerAnim::PlayBowAimAnim()
 {
@@ -73,9 +73,19 @@ void UPlayerAnim::PlayBowAimAnim()
 }
 
 // 칼공격 애니메이션 몽타주 재생 함수 
-void UPlayerAnim::PlayKalAimAnim()
+void UPlayerAnim::PlayKalAnim()
 {
-	Montage_Play(KalAimAnimMontage);
+	Montage_Play(KalAnimMontage);
+}
+
+void UPlayerAnim::PlayKal2Anim()
+{
+	Montage_Play(Kal2AnimMontage);
+}
+
+void UPlayerAnim::PlayKal3Anim()
+{
+	Montage_Play(Kal3AnimMontage);
 }
 
 // 데미지 받고 죽는 함수  ???
@@ -92,14 +102,26 @@ void UPlayerAnim::PlayKalAimAnim()
 
 void UPlayerAnim::AnimNotify_PlayerAttack()
 {
+	player->righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	player->lefthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	player->knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+}
+
+void UPlayerAnim::AnimNotify_SaveAttack()
+{
+	player->ComboAttackSave();
+}
+
+void UPlayerAnim::AnimNotify_BowAttack()
+{
+	player->LineTrace();
 }
 
 // AttackEnd 애님 노티파이
 void UPlayerAnim::AnimNotify_PlayerAttackEnd()
 {
 	player->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	player->compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	player->knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	player->ComboReset();
 }
 
 void UPlayerAnim::AnimNotify_Crack()

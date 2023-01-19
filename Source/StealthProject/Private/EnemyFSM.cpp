@@ -44,6 +44,8 @@ void UEnemyFSM::BeginPlay()
 	ai = Cast<AAIController>(me->GetController());	// ai 변수에 AIController 할당
 
 	originPos = me->GetActorLocation();
+
+	currHP = maxHP;
 }
 
 // Called every frame
@@ -77,9 +79,9 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	case EEnemyState::Look:
 		LookState();
 		break;
-// 	case EEnemyState::AttackDelay:
-// 		AttackDelayState();
-// 		break;
+	case EEnemyState::AttackDelay:
+		AttackDelayState();
+		break;
 	}
 
 	// 적이 바라보는 방향과 적과 타겟 사이의 방향간의 사이각 구하기
@@ -153,44 +155,20 @@ void UEnemyFSM::ChaseState()
 	}
 }
 
-// void UEnemyFSM::AttackDelayState()
-// {
-// 	// 일정 시간마다 한번씩 공격
-// 	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
-// 	{
-// 		if (AngleDegree < 45)
-// 		{
-// 			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-// 			ChangeState(EEnemyState::Attack);
-// 		}
-// 		else
-// 		{
-// 			ChangeState(EEnemyState::Idle);
-// 		}
-// 	}
-// 
-// 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
-// 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
-// 																								// Target과 Me 사이의 거리를 구한다.
-// 	if (distance > attackRange)
-// 	{
-// 		ChangeState(EEnemyState::Chase);
-// 	}
-// }
-
-void UEnemyFSM::AttackState()
+void UEnemyFSM::AttackDelayState()
 {
-// 	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
-// 	{
+	// 일정 시간마다 한번씩 공격
+	if (IsDelayComplete(attackDelayTime))	// 2. 만약 경과 시간이 공격 시간을 넘었다면
+	{
 		if (AngleDegree < 45)
 		{
-			anim->bAttackPlay = true;
+			ChangeState(EEnemyState::Attack);
 		}
 		else
 		{
 			ChangeState(EEnemyState::Idle);
 		}
-//	}
+	}
 
 	// 타깃이 공격 범위를 벗어나면 쫓는상태로 전환
 	float distance = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());		// FVector::Distance(위치, 위치) : 두 위치 사이의 거리를 구해주는 함수.
@@ -201,13 +179,18 @@ void UEnemyFSM::AttackState()
 	}
 }
 
-void UEnemyFSM::OnDamageProcess()
+void UEnemyFSM::AttackState()
 {
-	HP--;
+	ChangeState(EEnemyState::AttackDelay);
+}
 
-	if (HP > 0)  // HP가 0 이상이면
+void UEnemyFSM::OnDamageProcess(float damage)
+{
+	currHP -= damage;
+
+	if (currHP > 0)  // HP가 0 이상이면
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), HP);
+		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), currHP);
 		ChangeState(EEnemyState::Damage);
 
 	}
@@ -221,7 +204,7 @@ void UEnemyFSM::OnDamageProcess()
 void UEnemyFSM::OnBackAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
-	HP = 0;
+	currHP = 0;
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	playerController->SetViewTargetWithBlend(me, 0.5);
 
@@ -359,9 +342,11 @@ void UEnemyFSM::ChangeState(EEnemyState state)
 			me->PlayAnimMontage(damagedMontage, 1.0f, FName(*sectionName));
 			break;
 		}
+		case EEnemyState::AttackDelay:
+			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+			break;
 		case EEnemyState::Attack:
-			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-			currentTime = attackDelayTime;
+			//me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 			break;
 		case EEnemyState::Chase:
 			me->compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);

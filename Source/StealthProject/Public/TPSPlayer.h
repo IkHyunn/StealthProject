@@ -25,9 +25,6 @@ public:  // 메시, 컬리젼
 	UPROPERTY(VisibleAnywhere,  BlueprintReadWrite, Category = Camera)   // 카메라 
 	class UCameraComponent* tpsCamComp;     
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = GunMesh)  // 총 메시
-	class USkeletalMeshComponent* pistolComp;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = GunMesh)  // 활 메시
 	class USkeletalMeshComponent* bowComp;
 
@@ -35,10 +32,13 @@ public:  // 메시, 컬리젼
 	class USkeletalMeshComponent* kalComp;
 
 	UPROPERTY(EditAnywhere)
-	class UBoxComponent* compBox;      // 손컬리젼 ??
+	class UBoxComponent* righthandBox;      // 오른손 Collision
 
 	UPROPERTY(EditAnywhere)
-	class UBoxComponent* knifeBox;
+	class UBoxComponent* lefthandBox;  // 왼손 Collision
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* knifeBox;  // 칼 Collision
 
 
 public: // 공장들, 위젯들, subclass
@@ -51,9 +51,6 @@ public: // 공장들, 위젯들, subclass
 	UPROPERTY(EditAnywhere, Category = BulletEffect)   //총알 파편효과 공장
 		class UParticleSystem* bulletEffectFactory;  
 
-	UPROPERTY(EditDefaultsOnly, Category = SniperUI)   // 크로스헤어 위젯공장
-		TSubclassOf<class UUserWidget> crosshairUIFactory;
-
 	UPROPERTY(EditDefaultsOnly, Category=CameraMotion)     // 카메라세이크 
 		TSubclassOf<class UCameraShakeBase> cameraShake;
 
@@ -63,8 +60,11 @@ public: // 공장들, 위젯들, subclass
 	UPROPERTY()
 		class UUserWidget* _sniperUI;          // 스나이퍼위젯
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UUserWidget* _crosshairUI;     // 크로스헤어위젯
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UCrosshairUI> crosshairFactory;
+
+	UPROPERTY(EditAnywhere)
+		class UCrosshairUI* crosshairUI;     // 크로스헤어 위젯
 
 
 public: // 시간, 속도, hp  변수 등..
@@ -99,6 +99,9 @@ public: // 시간, 속도, hp  변수 등..
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)  // 줌 아웃 시작 거리
 		float zoomOut = 75;
 
+	UPROPERTY(EditAnywhere)                 // 콤보 저장
+		int32 attackCount = 0;
+
 // 캐스트 변수들
 
 	UPROPERTY()
@@ -131,7 +134,10 @@ public: // 시간, 속도, hp  변수 등..
 		bool bCrouched = false;  // 웅크리고 있는지
 
 	UPROPERTY(EditAnywhere)
-		bool isOnAttack = false;   
+		bool isAttacking = false; 
+		
+	UPROPERTY(EditAnywhere)
+		bool saveAttack = false;
 
 	UPROPERTY(EditAnywhere)
 		class APlayerController* playerController;
@@ -152,11 +158,13 @@ public: //  함수
 	void SniperAim();     //조준
 	void InputAssasinate();  // 암살
 	void ChangeToPunch();    // 주먹
-	void ChangeToPistol();     // 권총
 	void ChangeToBow();    // 활
 	void ChangeToKal();    // 칼
 	void fireEffect(); // 총 이펙트  
 	void LineTrace();  // 라인트레이스
+
+	void ComboAttackSave();
+	void ComboReset();
 
 // UFUNCTION
 	UFUNCTION(BlueprintCallable, Category = Health)
@@ -165,6 +173,8 @@ public: //  함수
 		void OnGameOver();  // GameOver 이벤트
 	UFUNCTION()
 		void HandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+		void LeftHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 		void KnifeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

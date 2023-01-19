@@ -16,6 +16,7 @@
 #include <Particles/ParticleSystem.h>
 #include "PlayerAnim.h"
 #include <Components/BoxComponent.h>
+#include "CrosshairUI.h"
 
 
 
@@ -46,18 +47,6 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	tpsCamComp->bUsePawnControlRotation = false;      // 카메라는 회전시 자유
 	bUseControllerRotationYaw = true;      //  플레이어회전- 클래스의 디폴트 설정값을 의미 
 
-	//총  메시
-	pistolComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SniperGunComp"));  
-	pistolComp->SetupAttachment(GetMesh(), TEXT("Pistol_Socket"));    // 메시의 자식, 소켓붙이기
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempPistolMesh(TEXT("SkeletalMesh'/Game/Wise/Resources/MilitaryWeapSilver/Weapons/Pistols_A.Pistols_A'")); //  데이터 로드 //  TempSniperMesh 구조체(ConstructorHelpers)변수선언
-	if(TempPistolMesh.Succeeded())  
-	{
-		pistolComp->SetSkeletalMesh(TempPistolMesh.Object);  
-		pistolComp->SetRelativeLocation(FVector(0.218060, -9.718926, 1.827586));
-		//(Pitch = 80.000000, Yaw = 449.999999, Roll = 270.000000)
-		pistolComp->SetRelativeRotation(FRotator(80.000000, 449.999999, 270.000000));
-	}
-
 	// 활 메시
 	bowComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("bowComp"));
 	bowComp->SetupAttachment(GetMesh(), TEXT("LeftbowSocket"));
@@ -81,12 +70,19 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 		kalComp->SetRelativeRotation(FRotator(-447.572166,-669.341707, 86.171881));
 	}
 
-	// 소켓 컬리젼
-	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
-	compBox->SetupAttachment(GetMesh(), TEXT("Hand_Socket"));
-	compBox->SetBoxExtent(FVector(15));
-	compBox->SetCollisionProfileName(TEXT("Hand"));
+	// 오른손 Collision
+	righthandBox = CreateDefaultSubobject<UBoxComponent>(TEXT("RightHand"));
+	righthandBox->SetupAttachment(GetMesh(), TEXT("Hand_Socket"));
+	righthandBox->SetBoxExtent(FVector(15));
+	righthandBox->SetCollisionProfileName(TEXT("Hand"));
 
+	// 왼손 Collision
+	lefthandBox = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftHand"));
+	lefthandBox->SetupAttachment(GetMesh(), TEXT("LeftHand_Socket"));
+	lefthandBox->SetBoxExtent(FVector(15));
+	lefthandBox->SetCollisionProfileName(TEXT("Hand"));
+
+	// 칼 Collision
 	knifeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("knifeBox"));
 	knifeBox->SetupAttachment(GetMesh(), TEXT("Kal_Socket"));
 	knifeBox->SetBoxExtent(FVector(15));
@@ -98,11 +94,11 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	{
 		sniperUIFactory = _tempsniperUI.Class;
 	}
-	// 2.크로스헤어 위젯클래스 가져오기
-	ConstructorHelpers::FClassFinder<UUserWidget> tempUI(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Crosshair.WBP_Crosshair_C'"));
-	if (tempUI.Succeeded())
+	// 2. crosshairUI 클래스 가져오기
+	ConstructorHelpers::FClassFinder<UCrosshairUI>tempcrosshair(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_CrossHairUI.WG_CrossHairUI_C'"));
+	if (tempcrosshair.Succeeded())
 	{
-		crosshairUIFactory = tempUI.Class;
+		crosshairFactory = tempcrosshair.Class;
 	}
 	// 3.총알 블루프린트 클래스 가져오기
 	ConstructorHelpers::FClassFinder<ABullet> tempbulletFactory(TEXT("Blueprint'/Game/Wise/Blueprints/BP_Bullet.BP_Bullet_C'"));
@@ -136,17 +132,20 @@ void ATPSPlayer::BeginPlay()
 	Super::BeginPlay();
 	
 	// 초기설정
-	pistolComp->SetVisibility(false);   // 총no  
 	bowComp->SetVisibility(false);   // 활no
 	kalComp->SetVisibility(false);   // 칼no
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  //걷기로
 	HP = initialHP;   // HP = 5
 	anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());  // 플레이어애님cast 
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      //스나이퍼 ui 생성
-	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);    // 크로스헤어 ui 생성 
-	_crosshairUI->RemoveFromParent();  // 크로스헤어 안보이게
-	compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	compBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::HandOverlap);  // 오버랩
+	crosshairUI = CreateWidget<UCrosshairUI>(GetWorld(), crosshairFactory);
+
+	righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	righthandBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::HandOverlap);
+
+	lefthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	lefthandBox->OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::LeftHandOverlap);
+
 	knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	knifeBox->OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::KnifeOverlap);
 }
@@ -158,7 +157,27 @@ void ATPSPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	Move();   // 이동
 	currentTime += DeltaTime;  // 시간누적  필요한가??
+	
+	if (bSniperAim == true)
+	{
+		tpsCamComp->SetFieldOfView(zoomIn);    //줌인
+		zoomIn -= DeltaTime * 300;
 
+		if (zoomIn <= 45)
+		{
+			zoomIn = 45;
+		}
+	}
+	else
+	{
+		tpsCamComp->SetFieldOfView(zoomIn);
+		zoomIn += DeltaTime * 300;
+
+		if (zoomIn >= 90)
+		{
+			zoomIn = 90;
+		}
+	}
 }
 
 
@@ -173,9 +192,8 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ATPSPlayer::InputJump);   // 점프 
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATPSPlayer::InputFire);   // 발사 
 	PlayerInputComponent->BindAction(TEXT("Punch"), IE_Pressed, this, &ATPSPlayer::ChangeToPunch);   // 1번 주먹
-	PlayerInputComponent->BindAction(TEXT("SniperGun"), IE_Pressed, this, &ATPSPlayer::ChangeToPistol);   // 권총 2번
-	PlayerInputComponent->BindAction(TEXT("Bow"), IE_Pressed, this, &ATPSPlayer::ChangeToBow); // 활 3번
-	PlayerInputComponent->BindAction(TEXT("Kal"), IE_Pressed, this, &ATPSPlayer::ChangeToKal); // 칼 4번
+	PlayerInputComponent->BindAction(TEXT("Bow"), IE_Pressed, this, &ATPSPlayer::ChangeToBow); // 활 2번
+	PlayerInputComponent->BindAction(TEXT("Kal"), IE_Pressed, this, &ATPSPlayer::ChangeToKal); // 칼 3번
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Pressed, this, &ATPSPlayer::SniperAim);    // 조준 
 	PlayerInputComponent->BindAction(TEXT("Sniper"), IE_Released, this, &ATPSPlayer::SniperAim);    
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &ATPSPlayer::InputRun); // 달리기
@@ -260,60 +278,138 @@ void ATPSPlayer::InputFire()
 	// 펀치이면= 1번이 눌러졌을 때만 왼쪽 마우스로 펀치하고 다른 번호를 눌러야 나간다
 	if (bPunch)
 	{ 
-		if (currentTime > attackDelayTime)
+		if (isAttacking == false)
 		{
-			//anim->isPunch = true;
+			isAttacking = true;
 			GetCharacterMovement()->DisableMovement();
-			compBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-			anim->PlayPunchAnim();   // 펀치애님실행하기
-
-			currentTime = 0;
+		
+			switch (attackCount)
+			{
+				case 0:
+				attackCount = 1;
+				righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayPunchAnim();
+				break;
+				case 1:
+				attackCount = 0;
+				lefthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayHookAnim();
+				break;
+			}
+		}	
+		else
+		{
+			saveAttack = true;
 		}
 	}
-	
-// 	2, 3, 4를 누를 때만 초기화 하면 되기 때문에 필요없음. InputFire는 마우스 좌클릭.
-// 	if ((pistolComp->IsVisible() == true) || (bowComp->IsVisible() == true) || (kalComp->IsVisible() == true))
-// 	{
-// 		bPunch = false;
-// 	}
 
 	// 칼이면
 	if (kalComp->IsVisible() == true)
 	{
-		if (currentTime > attackDelayTime)
+		if (isAttacking == false)
 		{
+			isAttacking = true;
 			GetCharacterMovement()->DisableMovement();
-			knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-			anim->PlayKalAimAnim();  //칼 애님 실행 
 
-			currentTime = 0;
+			switch (attackCount)
+			{
+			case 0:
+				attackCount = 1;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKalAnim();
+				break;
+			case 1:
+				attackCount = 2;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKal2Anim();
+				break;
+			case 2:
+				attackCount = 0;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKal3Anim();
+				break;
+			}
+		}
+		else
+		{
+			saveAttack = true;
 		}
 	}
 
-	//권총이고 총알이 잇으면
-	if ((pistolComp->IsVisible() == true) && (currentBullet > 0))    
-	{ 
-		anim->PlayAttackAnim();  //총 애님 실행
-		LineTrace();  // 권총 라인트레이스 
-	}
-
 	// 활이면
-	if (bowComp->IsVisible() == true)
+	if (bowComp->IsVisible() == true && currentBullet > 0)
 	{
+		LineTrace();
 		GetCharacterMovement()->DisableMovement();
 		anim->PlayBowAimAnim();  //활 애님 실행 
-		LineTrace();  // 권총 라인트레이스 
 	}
 }
 
+void ATPSPlayer::ComboAttackSave()
+{
+	if (bPunch == true)
+	{
+		if (saveAttack == true)
+		{
+			saveAttack = false;
+
+			switch (attackCount)
+			{
+			case 0:
+				attackCount = 1;
+				righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayPunchAnim();
+				break;
+			case 1:
+				attackCount = 0;
+				lefthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayHookAnim();
+				break;
+			}
+		}
+	}
+	
+	if (kalComp->IsVisible() == true)
+	{
+		if (saveAttack == true)
+		{
+			saveAttack = false;
+
+			switch (attackCount)
+			{
+			case 0:
+				attackCount = 1;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKalAnim();
+				break;
+			case 1:
+				attackCount = 2;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKal2Anim();
+				break;
+			case 2:
+				attackCount = 0;
+				knifeBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+				anim->PlayKal3Anim();
+				break;
+			}
+		}
+	}
+}
+
+void ATPSPlayer::ComboReset()
+{
+	attackCount = 0;
+	isAttacking = false;
+	saveAttack = false;
+}
 
 void ATPSPlayer::ChangeToPunch()    //주먹 -1번 
 {
 	//보이기 여부
-	pistolComp->SetVisibility(false);  
 	kalComp->SetVisibility(false);   
 	bowComp->SetVisibility(false);   
-	_crosshairUI -> RemoveFromParent(); 
+	crosshairUI -> RemoveFromParent(); 
 
 	// 애님실행여부
 	anim->isPunch = true;  // 주먹애님 = yes
@@ -325,36 +421,14 @@ void ATPSPlayer::ChangeToPunch()    //주먹 -1번
 	bPunch = true;   // 왼쪽 마우스(fire)  선별위한 변수
 }
 
-
-
-void ATPSPlayer::ChangeToPistol()   // 권총으로 -2번
-{
-	if (bgetGun == true)  // 총을 주워야 함수 호출 가능
-	{
-		//보이기 여부
-		pistolComp->SetVisibility(true);   //권총 yes
-		_crosshairUI->AddToViewport();    // 크로스헤어 yes
-		kalComp->SetVisibility(false);   
-		bowComp->SetVisibility(false);   
-
-		// 애님실행여부
-		anim->isGunEquipped = true;  // 권총 yes
-		anim->isBow = false;  
-		anim->isPunch = false;
-		anim->isKal = false;  
-
-		bPunch = false;
-	}
-}
-
 void ATPSPlayer::ChangeToBow()   // 활 - 3번키 
 {
 	if (bgetbow == true)  
 	{
 		//보이기 여부
 		bowComp->SetVisibility(true);   //활 yes
-		pistolComp->SetVisibility(false);  
-		kalComp->SetVisibility(false);   
+		kalComp->SetVisibility(false);
+		crosshairUI->AddToViewport();
 
 		// 애님실행여부
 		anim->isBow = true;  // 활 yes
@@ -372,8 +446,7 @@ void ATPSPlayer::ChangeToKal()   // 칼 - 4번키
 	{
 		//보이기 여부
 		kalComp->SetVisibility(true);  // 칼 yes
-		_crosshairUI->RemoveFromParent();  // 크로스헤어 yes 
-		pistolComp->SetVisibility(false);   
+		crosshairUI->RemoveFromParent();  // 크로스헤어 yes 
 		bowComp->SetVisibility(false);   
 
 		// 애님실행여부
@@ -386,50 +459,30 @@ void ATPSPlayer::ChangeToKal()   // 칼 - 4번키
 	}
 }
 
-
-
-
 void ATPSPlayer::SniperAim()  // 6- 스나이퍼 입력 눌럿을 때 떼엇을 때
 {
-    // 함수 패스일때 : 주먹, 칼 
-	//if (bPunch == true  ||  bgetKal == true)
-	//{
-	//	return;
-	//}
-	
-	// 총 일 때  
-	if (pistolComp->IsVisible() == true)
-	{
-		if (bSniperAim == false)  
-		{
-			_sniperUI->AddToViewport();   // 스나이퍼 보임
-			tpsCamComp->SetFieldOfView(45.0f);    //줌인
-			_crosshairUI->RemoveFromParent();  // 크로스헤어 no
-			bSniperAim = true;   //바꾸고
-		}
-		else    
-		{
-			_sniperUI->RemoveFromParent();    // 스나이퍼 안보임
-			tpsCamComp->SetFieldOfView(90.0f);   //줌아웃
-			_crosshairUI->AddToViewport();     // 크로스헤어 yes
-			bSniperAim = false;     //바꾸고 
-		}
-	}
+     // 함수 패스일때 : 주먹, 칼 
+ 	if (bPunch == true  ||  kalComp->IsVisible() == true)
+ 	{
+ 		return;
+ 	}
 
-	// 활 일 때
-	if (bowComp->IsVisible() == true)
+	if (bCrouched == false)
 	{
-		if (bSniperAim == false)
+		if (bowComp->IsVisible() == true)  // 활일 때
 		{
-			_crosshairUI->AddToViewport();   // 크로스헤어 yes 
-			tpsCamComp->SetFieldOfView(80.0f);
-			bSniperAim = true;
-		}
-		else
-		{
-			_crosshairUI->RemoveFromParent();   // 크로스헤어 no 
-			tpsCamComp->SetFieldOfView(90.0f);
-			bSniperAim = false;
+			if (bSniperAim == false)
+			{
+				anim->isBowAiming = true;
+				crosshairUI->ZoomIn();
+				bSniperAim = true;
+			}
+			else
+			{
+				anim->isBowAiming = false;
+				crosshairUI->ZoomOut();
+				bSniperAim = false;
+			}
 		}
 	}
 }
@@ -477,7 +530,6 @@ void ATPSPlayer::fireEffect()
 	playerController->PlayerCameraManager->StartCameraShake(cameraShake);
 }
 
-
 void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 {
 	FVector startPos = tpsCamComp->GetComponentLocation();  // 시작 위치
@@ -489,14 +541,7 @@ void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 
 	if (bHit)
 	{
-		if (pistolComp->IsVisible() == true)
-		{
-			FTransform bulletTrans;   // 총알파편 효과 
-			bulletTrans.SetLocation(hitInfo.ImpactPoint);     // 부딪힌 위치 할당  ???
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), bulletEffectFactory, bulletTrans);  // 이펙트스폰
-			fireEffect();  // 사운드 & 카메라세이크
-			currentBullet--;  //총알감소
-		}
+		currentBullet--;  //총알 감소
 	
 		auto hitComp = hitInfo.GetComponent();  
 		if (hitComp && hitComp->IsSimulatingPhysics())   // 날려보내기  
@@ -509,7 +554,7 @@ void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 		if (enemy)
 		{
 			auto enemyFSM = Cast<UEnemyFSM>(enemy);     // 애너미fsm 캐스트
-			enemyFSM->OnDamageProcess();
+			enemyFSM->OnDamageProcess(2);
 		}
 	}
 }
@@ -520,6 +565,7 @@ void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 {
 	GetCharacterMovement()->DisableMovement();
+	ComboReset();
 	UE_LOG(LogTemp, Warning, TEXT("Player Damaged!"));
 	HP--;
 	UE_LOG(LogTemp, Warning, TEXT("Player HP : %d"), HP);
@@ -560,9 +606,24 @@ void ATPSPlayer::HandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 
 		if (enemy != nullptr)
 		{
-			if (enemy->fsm->HP > 0)
+			if (enemy->fsm->currHP > 0)
 			{
-				enemy->fsm->OnDamageProcess();
+				enemy->fsm->OnDamageProcess(1);
+			}
+		}
+	}
+}
+
+void ATPSPlayer::LeftHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this)
+	{
+		AIH_Enemy* enemy = Cast<AIH_Enemy>(OtherActor);
+		if (enemy != nullptr)
+		{
+			if (enemy->fsm->currHP > 0)
+			{
+				enemy->fsm->OnDamageProcess(1);
 			}
 		}
 	}
@@ -576,9 +637,9 @@ void ATPSPlayer::KnifeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 		if (enemy != nullptr)
 		{
-			if (enemy->fsm->HP > 0)
+			if (enemy->fsm->currHP > 0)
 			{
-				enemy->fsm->OnDamageProcess();
+				enemy->fsm->OnDamageProcess(2);
 			}
 		}
 	}

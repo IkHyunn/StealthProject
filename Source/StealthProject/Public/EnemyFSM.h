@@ -13,7 +13,7 @@ enum class EEnemyState : uint8
 	Move,
 	Chase,
 	Attack,
-//	AttackDelay,
+	AttackDelay,
 	Damage,
 	Die,
 	Return,
@@ -50,9 +50,9 @@ public:
 	void DieState();  // 죽음 상태
 	void ReturnState();  // 제자리로 돌아가는 상태
 	void LookState();
-//	void AttackDelayState();
+	void AttackDelayState();
 
-	void OnDamageProcess();
+	void OnDamageProcess(float damage);
 	void OnBackAttack();
 
 	bool IsDelayComplete(float delaytime);
@@ -68,7 +68,7 @@ public:
 	float currentTime = 0;		// 경과 시간
 	float moveDelayTime = 1;	// 움직임 대기 시간
 	float lookDelayTime = 4;  // 둘러보는 시간
-	float attackDelayTime = 3;
+	float attackDelayTime = 2;
 
 	UPROPERTY(VisibleAnywhere, Category = FSM)
 	class ATPSPlayer* target;		// 플레이어를 타겟으로 설정
@@ -77,7 +77,7 @@ public:
 	class AIH_Enemy* me;			// 현재 액터를 나로 설정
 
 	UPROPERTY(EditAnywhere, Category = FSM)
-	float attackRange = 150;
+	float attackRange = 125;
 
 	// 시야각을 구하기 위한 변수
 	UPROPERTY()
@@ -112,7 +112,10 @@ public:
 	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
-	int32 HP = 5;
+	int32 currHP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
+	int32 maxHP = 10;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float damageDelayTime = 1;

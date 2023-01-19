@@ -67,7 +67,7 @@ void AIH_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis(TEXT("Move Right / Left"), this, &AIH_Player::InputHorizontal);
 	
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &AIH_Player::InputJump);
-	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &AIH_Player::InputAttack);
+//	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &AIH_Player::InputAttack);
 
 /*	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &AIH_Player::InputAssasinate);*/
 }
@@ -106,18 +106,18 @@ void AIH_Player::InputJump()
 	Jump();
 }
 
-void AIH_Player::InputAttack()
-{
-	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());  // AIH_Enemy를 찾아서 actor 변수에 넣어둔다.
-	AIH_Enemy* enemy = Cast<AIH_Enemy>(actor);  // actor가 AIH_Enemy가 맞으면 enemy 변수에 저장한다.
-	UEnemyFSM* enemyFSM = Cast<UEnemyFSM>(enemy);
-
-	if (currentTime > attackDelayTime)
-	{
-		enemy->fsm->OnDamageProcess();
-		currentTime = 0;
-	}
-}
+// void AIH_Player::InputAttack()
+// {
+// 	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AIH_Enemy::StaticClass());  // AIH_Enemy를 찾아서 actor 변수에 넣어둔다.
+// 	AIH_Enemy* enemy = Cast<AIH_Enemy>(actor);  // actor가 AIH_Enemy가 맞으면 enemy 변수에 저장한다.
+// 	UEnemyFSM* enemyFSM = Cast<UEnemyFSM>(enemy);
+// 
+// 	if (currentTime > attackDelayTime)
+// 	{
+// 		enemy->fsm->OnDamageProcess();
+// 		currentTime = 0;
+// 	}
+// }
 
 // void AIH_Player::InputAssasinate()
 // {

@@ -54,7 +54,7 @@ void AIH_Gun::BeginPlay()
 {
 	Super::BeginPlay();
 
-	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Gun::OnOverlap);
+//	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Gun::OnOverlap);
 	compWidget->SetVisibility(false);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Gun::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Gun::OnSphereEndOverlap);
@@ -67,20 +67,20 @@ void AIH_Gun::Tick(float DeltaTime)
 
 }
 
-void AIH_Gun::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	character = Cast<ATPSPlayer>(OtherActor);
-	
-	if (character != nullptr)
-	{
-		UE_LOG(LogTemp, Warning, (TEXT("Get Gun!")));
-		character->bgetGun=true;  // bgetGun이 true일 때만 2번 키를 누를 수 있음.
-		character->anim->isGunEquipped=true;
-		character->ChangeToPistol();
-		Destroy();
-	}
-	else return;
-}
+// void AIH_Gun::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+// {
+// 	character = Cast<ATPSPlayer>(OtherActor);
+// 	
+// 	if (character != nullptr)
+// 	{
+// 		UE_LOG(LogTemp, Warning, (TEXT("Get Gun!")));
+// 		character->bgetGun=true;  // bgetGun이 true일 때만 2번 키를 누를 수 있음.
+// 		character->anim->isGunEquipped=true;
+// 		character->ChangeToPistol();
+// 		Destroy();
+// 	}
+// 	else return;
+// }
 
 void AIH_Gun::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
