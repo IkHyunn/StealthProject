@@ -109,7 +109,7 @@ void AIH_Enemy::BeginPlay()
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnSphereEndOverlap);
 
-	enemyHPUI = Cast<UEnemyHP>(compWidget->GetWidgetClass());
+	enemyHPUI = Cast<UEnemyHP>(compWidget->GetUserWidgetObject());
 }
 
 // Called every frame

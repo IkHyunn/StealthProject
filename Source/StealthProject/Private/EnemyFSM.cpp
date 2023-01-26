@@ -189,6 +189,7 @@ void UEnemyFSM::AttackState()
 void UEnemyFSM::OnDamageProcess(float damage)
 {
 	currHP -= damage;
+	me->enemyHPUI->UpdateEnemyHP(currHP, maxHP);
 
 	if (currHP > 0)  // HP가 0 이상이면
 	{
