@@ -128,8 +128,6 @@ void UPlayerAnim::AnimNotify_Crack()
 {
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	playerController->PlayerCameraManager->StartCameraShake(cameraShake);
-
-
 }
 
 void UPlayerAnim::AnimNotify_AssasinateEnd()
