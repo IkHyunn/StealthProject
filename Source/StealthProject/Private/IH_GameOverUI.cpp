@@ -7,6 +7,8 @@
 
 void UIH_GameOverUI::NativeConstruct()
 {
+	PlayAnimation(GameOver, 0.0f, 1);
+
 	btnRetry->OnClicked.AddDynamic(this, &UIH_GameOverUI::Retry);
 	btnQuit->OnClicked.AddDynamic(this, &UIH_GameOverUI::Quit);
 }

@@ -3,3 +3,9 @@
 
 #include "IH_Pointer.h"
 
+void UIH_Pointer::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	PlayAnimation(PickUp, 0.0f, 0);
+}

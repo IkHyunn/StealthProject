@@ -13,6 +13,8 @@
 #include <Kismet/KismetMathLibrary.h>
 #include <GameFramework/CharacterMovementComponent.h>
 #include <Components/BoxComponent.h>
+#include <Components/WidgetComponent.h>
+#include "EnemyHP.h"
 
 // Sets default values for this component's properties
 UEnemyFSM::UEnemyFSM()
@@ -190,13 +192,12 @@ void UEnemyFSM::OnDamageProcess(float damage)
 
 	if (currHP > 0)  // HP가 0 이상이면
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Enemy HP : %d"), currHP);
 		ChangeState(EEnemyState::Damage);
-
 	}
 	else  // HP가 0 이하로 떨어지면
 	{
 		ChangeState(EEnemyState::Die);
+		me->compBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		me->PlayAnimMontage(damagedMontage, 1.0f, FName(TEXT("Die")));
 	}
 }

@@ -112,10 +112,10 @@ public:
 	FCollisionQueryParams params;  // 충돌 옵션 설정 변수
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
-	int32 currHP;
+	float currHP;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = FSM)  // 체력
-	int32 maxHP = 10;
+	float maxHP = 10;
 
 	UPROPERTY(EditAnywhere, Category=FSM)
 	float damageDelayTime = 1;

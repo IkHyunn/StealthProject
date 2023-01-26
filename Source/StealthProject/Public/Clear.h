@@ -37,6 +37,4 @@ public:
 
 	UPROPERTY()
 	class UIH_ClearUI* gameClearUI;  // UIH_Clear 클래스를 담을 포인터 변수 gameClearUI를 선언한다.
-
-	void ShowGameClearUI();
 };

@@ -8,6 +8,7 @@
 #include <GameFramework/Pawn.h>
 #include <Components/BoxComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
+#include "PlusCountUI.h"
 
 void UEnemyAnim::NativeBeginPlay()
 {
@@ -33,7 +34,7 @@ void UEnemyAnim::OnEndAttackAnimation()
 void UEnemyAnim::AnimNotify_DieEnd()
 {
 	bDieDone = true;
-	target->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	target->plusCountUI->AddToViewport();
 }
 
 void UEnemyAnim::AnimNotify_OnAttack()

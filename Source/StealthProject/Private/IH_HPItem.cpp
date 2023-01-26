@@ -7,6 +7,7 @@
 #include <Components/SphereComponent.h>
 #include <Components/WidgetComponent.h>
 #include <Blueprint/UserWidget.h>
+#include "PlayerHP.h"
 
 // Sets default values
 AIH_HPItem::AIH_HPItem()
@@ -35,13 +36,14 @@ AIH_HPItem::AIH_HPItem()
 
 	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
 	compWidget->SetupAttachment(RootComponent);
-	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+	compWidget->SetRelativeLocation(FVector(15, 0, 40));
 
-	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_Pointer.WG_Pointer_C'"));
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);
 		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compWidget->SetVisibility(false);
 	}
 }
 
@@ -51,9 +53,10 @@ void AIH_HPItem::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnOverlap);
-	compWidget->SetVisibility(false);
+	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_HPItem::OnEndOverlap);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_HPItem::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_HPItem::OnSphereEndOverlap);
+
 }
 
 // Called every frame
@@ -69,10 +72,30 @@ void AIH_HPItem::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 	if (character != nullptr)
 	{
-		character->HP+=5;
-		UE_LOG(LogTemp, Warning, TEXT("Current HP : %d"), character->HP);
+		character->pickHPItem=this;
+// 		character->HP += 3;
+// 
+// 		if (character->HP >= 5)
+// 		{
+// 			character->HP=character->maxHP;
+// 			character->playerHPUI->UpdatePlayerHP(character->maxHP, character->maxHP);
+// 		}
+// 		else
+// 		{
+// 			character->playerHPUI->UpdatePlayerHP(character->HP, character->maxHP);
+// 		}
+// 
+// 		Destroy();
+	}
+}
 
-		Destroy();
+void AIH_HPItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		character->pickHPItem = nullptr;
 	}
 }
 

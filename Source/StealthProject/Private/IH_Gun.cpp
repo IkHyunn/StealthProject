@@ -41,7 +41,7 @@ AIH_Gun::AIH_Gun()
 	compWidget->SetupAttachment(RootComponent);
 	compWidget->SetRelativeLocation(FVector(15, 0, 60));
 
-	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_Pointer.WG_Pointer_C'"));
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);

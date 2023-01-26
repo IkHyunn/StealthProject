@@ -8,6 +8,7 @@
 #include <Components/SphereComponent.h>
 #include <Blueprint/UserWidget.h>
 #include <Components/WidgetComponent.h>
+#include "ArrowCountUI.h"
 
 // Sets default values
 AIH_Bullet::AIH_Bullet()
@@ -21,10 +22,11 @@ AIH_Bullet::AIH_Bullet()
 
 	compMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PickupBullet"));
 	compMesh->SetupAttachment(compBox);
-	compMesh->SetRelativeScale3D(FVector(1.5));
+	compMesh->SetRelativeScale3D(FVector(0.025
+	));
 	compMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/Wise/Resources/MilitaryWeapSilver/Pickups/Pistol_Pickup.Pistol_Pickup'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh(TEXT("StaticMesh'/Game/Wise/Resources/Bows/bow-and-arrow/source/model_arrow.model_arrow'"));
 	if (tempMesh.Succeeded())
 	{
 		compMesh->SetStaticMesh(tempMesh.Object);
@@ -36,13 +38,14 @@ AIH_Bullet::AIH_Bullet()
 
 	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
 	compWidget->SetupAttachment(RootComponent);
-	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+	compWidget->SetRelativeLocation(FVector(15, 0, 30));
 
-	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_Pointer.WG_Pointer_C'"));
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);
 		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compWidget->SetVisibility(false);
 	}
 }
 
@@ -52,7 +55,7 @@ void AIH_Bullet::BeginPlay()
 	Super::BeginPlay();
 	
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Bullet::OnOverlap);
-	compWidget->SetVisibility(false);
+	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Bullet::OnEndOverlap);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Bullet::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Bullet::OnSphereEndOverlap);
 }
@@ -70,10 +73,21 @@ void AIH_Bullet::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * O
 
 	if (character != nullptr)
 	{
-		character->currentBullet+=plusBullet;
-		UE_LOG(LogTemp, Warning, TEXT("Current Bullet : %d"), character->currentBullet);
+		character->pickArrow = this;
 
-		Destroy();
+// 		character->currentArrow+=plusBullet;
+// 		character->arrowcountUI->UpdateCurrentArrow(character->currentArrow);
+// 		Destroy();
+	}
+}
+
+void AIH_Bullet::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		character->pickArrow = nullptr;
 	}
 }
 

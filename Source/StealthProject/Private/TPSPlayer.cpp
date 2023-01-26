@@ -17,6 +17,15 @@
 #include "PlayerAnim.h"
 #include <Components/BoxComponent.h>
 #include "CrosshairUI.h"
+#include "ArrowCountUI.h"
+#include "PlayerHP.h"
+#include "IH_CountUI.h"
+#include "PlusCountUI.h"
+#include "EnemyHP.h"
+#include "IH_Bullet.h"
+#include "IH_Knife.h"
+#include "Kal.h"
+#include "IH_HPItem.h"
 
 
 
@@ -124,6 +133,61 @@ ATPSPlayer::ATPSPlayer()   // 생성자  ------------------------------------------
 	{
 		bulletSound = tempSound.Object;
 	}
+	// 7. 화살 카운트 위젯 블루프린트 가져오기
+	ConstructorHelpers::FClassFinder<UArrowCountUI>tempArrow(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_ArrowCountUI.WG_ArrowCountUI_C'"));
+	if (tempArrow.Succeeded())
+	{
+		arrowcountFactory = tempArrow.Class;
+	}
+	// 8. HP 위젯 블루프린트 가져오기
+	ConstructorHelpers::FClassFinder<UPlayerHP>temphpbar(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_PlayerHP.WG_PlayerHP_C'"));
+	if (temphpbar.Succeeded())
+	{
+		playerHPFactory = temphpbar.Class;
+	}
+	// 9. 적 카운트 위젯 블루프린트 가져오기
+	ConstructorHelpers::FClassFinder<UPlusCountUI>tempplus(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_PlusCountUI.WG_PlusCountUI_C'"));
+	if (tempplus.Succeeded())
+	{
+		pluscountFactory = tempplus.Class;
+	}
+
+	// 사운드 가져오기
+	ConstructorHelpers::FObjectFinder<USoundBase>temppickknife(TEXT("SoundWave'/Game/Wise/Resources/Sound/Foley/FOL_Pick_Dagger.FOL_Pick_Dagger'"));
+	if (temppickknife.Succeeded())
+	{
+		pickKnifeSound = temppickknife.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase>temppickbow(TEXT("SoundWave'/Game/Wise/Resources/Sound/Foley/FOL_Pick_Bow.FOL_Pick_Bow'"));
+	if (temppickbow.Succeeded())
+	{
+		pickBowSound = temppickbow.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase>temppickarrow(TEXT("SoundWave'/Game/Wise/Resources/Sound/Foley/FOL_Pick_Arrow.FOL_Pick_Arrow'"));
+	if (temppickarrow.Succeeded())
+	{
+		pickArrowSound = temppickarrow.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase>tempbowloading(TEXT("SoundWave'/Game/Wise/Resources/Sound/Foley/FOL_BowLoading.FOL_BowLoading'"));
+	if (tempbowloading.Succeeded())
+	{
+		bowLoadingSound = tempbowloading.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase>temppunch(TEXT("SoundCue'/Game/Wise/Resources/Sound/FX/sc_FX_PunchDamaged.sc_FX_PunchDamaged'"));
+	if (temppunch.Succeeded())
+	{
+		punchDamagedSound = temppunch.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<USoundBase>tempsword(TEXT("SoundCue'/Game/Wise/Resources/Sound/FX/sc_FX_SwordDamaged.sc_FX_SwordDamaged'"));
+	if (tempsword.Succeeded())
+	{
+		swordDamagedSound = tempsword.Object;
+	}
 }
 
 
@@ -135,10 +199,14 @@ void ATPSPlayer::BeginPlay()
 	bowComp->SetVisibility(false);   // 활no
 	kalComp->SetVisibility(false);   // 칼no
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;  //걷기로
-	HP = initialHP;   // HP = 5
+	HP = maxHP;   // HP = 5
 	anim = Cast<UPlayerAnim>(GetMesh()->GetAnimInstance());  // 플레이어애님cast 
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);      //스나이퍼 ui 생성
 	crosshairUI = CreateWidget<UCrosshairUI>(GetWorld(), crosshairFactory);
+	arrowcountUI = CreateWidget<UArrowCountUI>(GetWorld(), arrowcountFactory);
+	playerHPUI = CreateWidget<UPlayerHP>(GetWorld(), playerHPFactory);
+	playerHPUI->AddToViewport();
+	plusCountUI = CreateWidget<UPlusCountUI>(GetWorld(), pluscountFactory);
 
 	righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	righthandBox -> OnComponentBeginOverlap.AddDynamic(this, &ATPSPlayer::HandOverlap);
@@ -201,6 +269,9 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ATPSPlayer::InputCrouch); // 숙이기
 	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Released, this, &ATPSPlayer::InputCrouch);
 	PlayerInputComponent->BindAction(TEXT("Assasinate"), IE_Released, this, &ATPSPlayer::InputAssasinate);  // 암살
+	PlayerInputComponent->BindAction(TEXT("MissionTab"), IE_Pressed, this, &ATPSPlayer::InputMission);
+	PlayerInputComponent->BindAction(TEXT("MissionTab"), IE_Released, this, &ATPSPlayer::InputMission);
+	PlayerInputComponent->BindAction(TEXT("PickUp"), IE_Pressed, this, &ATPSPlayer::InputPickUp);
 }
 
 void ATPSPlayer::Turn(float value)  
@@ -254,22 +325,19 @@ void ATPSPlayer::InputRun() // MaxWalkSpeed 설정
 void ATPSPlayer::InputCrouch()   // 웅크리기
 {
 	auto movement = GetCharacterMovement();
-//	if (bPunch == true)   //주먹일때  anim-> isCrouched 는 true
-//	{
-		if (anim->isCrouched == false)    // 눌럿을 때 맨주먹이며 웅크리면
-		{
-			movement->MaxWalkSpeed = crouchSpeed;  // 200 으로 느리게 걷기
-			anim->isCrouched = true;
-			bCrouched = true;
-		}
-		else                             // 떼엇을 때
-		{
-			movement->MaxWalkSpeed = walkSpeed;
-			anim->isCrouched = false;
-			bCrouched = false;
-		}
-//	}
-//	else return;
+
+	if (anim->isCrouched == false)
+	{
+		movement->MaxWalkSpeed = crouchSpeed;  // 200 으로 느리게 걷기
+		anim->isCrouched = true;
+		bCrouched = true;
+	}
+	else                             // 떼엇을 때
+	{
+		movement->MaxWalkSpeed = walkSpeed;
+		anim->isCrouched = false;
+		bCrouched = false;
+	}
 }
 
 void ATPSPlayer::InputFire()  
@@ -337,7 +405,7 @@ void ATPSPlayer::InputFire()
 	}
 
 	// 활이면
-	if (bowComp->IsVisible() == true && currentBullet > 0)
+	if (bowComp->IsVisible() == true && currentArrow > 0)
 	{
 		LineTrace();
 		GetCharacterMovement()->DisableMovement();
@@ -410,6 +478,7 @@ void ATPSPlayer::ChangeToPunch()    //주먹 -1번
 	kalComp->SetVisibility(false);   
 	bowComp->SetVisibility(false);   
 	crosshairUI -> RemoveFromParent(); 
+	arrowcountUI->RemoveFromParent();
 
 	// 애님실행여부
 	anim->isPunch = true;  // 주먹애님 = yes
@@ -429,6 +498,7 @@ void ATPSPlayer::ChangeToBow()   // 활 - 3번키
 		bowComp->SetVisibility(true);   //활 yes
 		kalComp->SetVisibility(false);
 		crosshairUI->AddToViewport();
+		arrowcountUI->AddToViewport();
 
 		// 애님실행여부
 		anim->isBow = true;  // 활 yes
@@ -447,7 +517,8 @@ void ATPSPlayer::ChangeToKal()   // 칼 - 4번키
 		//보이기 여부
 		kalComp->SetVisibility(true);  // 칼 yes
 		crosshairUI->RemoveFromParent();  // 크로스헤어 yes 
-		bowComp->SetVisibility(false);   
+		bowComp->SetVisibility(false); 
+		arrowcountUI->RemoveFromParent();
 
 		// 애님실행여부
 		anim->isKal = true;  // 칼 yes
@@ -473,6 +544,7 @@ void ATPSPlayer::SniperAim()  // 6- 스나이퍼 입력 눌럿을 때 떼엇을 때
 		{
 			if (bSniperAim == false)
 			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), bowLoadingSound, GetActorLocation());
 				anim->isBowAiming = true;
 				crosshairUI->ZoomIn();
 				bSniperAim = true;
@@ -492,6 +564,10 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 {
 	if (isBack == true)
 	{
+		anim->isCrouched=false;
+		bCrouched=false;
+		GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+
 		FHitResult hitBack;
 		FCollisionQueryParams params;
 		params.AddIgnoredActor(this);
@@ -503,7 +579,6 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 		{
 			if (hitBack.GetActor()->GetName().Contains(TEXT("Enemy")))
 			{
-				
 				backEnemy = Cast<AIH_Enemy>(hitBack.GetActor());
 				FVector playerPos = backEnemy->GetActorLocation() + backEnemy->GetActorForwardVector() * -180.0;
 
@@ -523,6 +598,75 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 	}
 }
 
+void ATPSPlayer::InputMission()
+{
+	AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
+	
+	if (currMode->countUI->IsInViewport() == false)
+	{
+		currMode->countUI->AddToViewport();
+	}
+	else
+	{
+		currMode->countUI->RemoveFromParent();
+	}
+}
+
+
+void ATPSPlayer::InputPickUp()
+{
+	if (pickBow != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), pickBowSound, GetActorLocation());
+		bgetbow = true;      //  활여부 = true, true일 때만 3번 키를 누를 수 있음.
+		anim->isBow = true;  //   활 애님 = true
+		ChangeToBow();   //  활 함수호출
+	 
+		anim->isGunEquipped = false;  // 총애님 no
+		pickBow->Destroy();
+		pickBow = nullptr;
+	}
+
+	if (pickArrow != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), pickArrowSound, GetActorLocation());
+		currentArrow+= pickArrow->plusBullet;
+		arrowcountUI->UpdateCurrentArrow(currentArrow);
+		pickArrow->Destroy();
+		pickArrow = nullptr;
+	}
+
+	if (pickHPItem != nullptr)
+	{
+		HP += 3;
+ 
+ 		if (HP >= 5)
+ 		{
+ 			HP=maxHP;
+ 			playerHPUI->UpdatePlayerHP(maxHP, maxHP);
+ 		}
+ 		else
+		{
+			playerHPUI->UpdatePlayerHP(HP, maxHP);
+		}
+
+		pickHPItem->Destroy();
+		pickHPItem = nullptr;
+	}
+
+	if (pickKnife != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), pickKnifeSound, GetActorLocation());
+		bgetKal = true;      //  칼여부 = true, true일 때만 3번 키를 누를 수 있음.
+	 	ChangeToKal();   //  칼 함수호출
+	 	anim->isKal = true;  //   칼 애님 = true
+	 	anim->isGunEquipped = false;  // 총애님 no
+	
+	 	pickKnife->Destroy();
+		pickKnife = nullptr;
+	}
+}
+
 void ATPSPlayer::fireEffect() 
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), bulletSound);   // 발사 사운드 재생
@@ -539,10 +683,11 @@ void ATPSPlayer::LineTrace()  //총, 활 발사 라인트레이스
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);  
 
+	currentArrow--;  //총알 감소
+	arrowcountUI->UpdateCurrentArrow(currentArrow);
+
 	if (bHit)
 	{
-		currentBullet--;  //총알 감소
-	
 		auto hitComp = hitInfo.GetComponent();  
 		if (hitComp && hitComp->IsSimulatingPhysics())   // 날려보내기  
 		{
@@ -566,28 +711,33 @@ void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 {
 	GetCharacterMovement()->DisableMovement();
 	ComboReset();
-	UE_LOG(LogTemp, Warning, TEXT("Player Damaged!"));
-	HP--;
-	UE_LOG(LogTemp, Warning, TEXT("Player HP : %d"), HP);
+	ReceiveDamage(1);
 
-		if (HP <= 0)  // 죽음상태로 
+	if (HP <= 0)  // 죽음상태로 
+	{
+		this->PlayAnimMontage(anim->DamageDieMontage, 1.0f, FName(TEXT("Die")));  // 죽음 몽타주 재생
+		//anim->PlayDamageAnim(TEXT("Die"));
+		if (anim->isDieDone == true)   // Die 섹션이 끝나면 
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Player Dead!"));
-			this->PlayAnimMontage(anim->DamageDieMontage, 1.0f, FName(TEXT("Die")));  // 죽음 몽타주 재생
-			//anim->PlayDamageAnim(TEXT("Die"));
-			if (anim->isDieDone == true)   // Die 섹션이 끝나면 
-			{
-				OnGameOver();  // 게임 오버 함수 호출
-			}
+			OnGameOver();  // 게임 오버 함수 호출
 		}
-		else  // 피격상태로
-		{
-			int32 index = FMath::RandRange(0, 1);   // 피격 몽타주 랜덤하게 재생
-			FString sectionName = FString::Printf(TEXT("Damage%d"), index);
-			this->PlayAnimMontage(anim->DamageDieMontage, 1.0f, FName(*sectionName));
-			//anim->PlayDamageAnim(FName(*sectionName));  // 피격 몽타주실행하기
-		}
+	}
+	else  // 피격상태로
+	{
+		int32 index = FMath::RandRange(0, 1);   // 피격 몽타주 랜덤하게 재생
+		FString sectionName = FString::Printf(TEXT("Damage%d"), index);
+		this->PlayAnimMontage(anim->DamageDieMontage, 1.0f, FName(*sectionName));
+		//anim->PlayDamageAnim(FName(*sectionName));  // 피격 몽타주실행하기
+	}
 }
+
+void ATPSPlayer::ReceiveDamage(float damage)
+{
+	HP -= damage;
+
+	playerHPUI->UpdatePlayerHP(HP, maxHP);
+}
+
 
 void ATPSPlayer::OnGameOver()
 {
@@ -608,6 +758,7 @@ void ATPSPlayer::HandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 		{
 			if (enemy->fsm->currHP > 0)
 			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), punchDamagedSound, GetActorLocation());
 				enemy->fsm->OnDamageProcess(1);
 			}
 		}
@@ -623,6 +774,7 @@ void ATPSPlayer::LeftHandOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 		{
 			if (enemy->fsm->currHP > 0)
 			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), punchDamagedSound, GetActorLocation());
 				enemy->fsm->OnDamageProcess(1);
 			}
 		}
@@ -639,6 +791,7 @@ void ATPSPlayer::KnifeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		{
 			if (enemy->fsm->currHP > 0)
 			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), swordDamagedSound, GetActorLocation());
 				enemy->fsm->OnDamageProcess(2);
 			}
 		}

@@ -10,6 +10,10 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include "EnemyAnim.h"
 #include <Camera/CameraComponent.h>
+#include <Components/SphereComponent.h>
+#include <Components/WidgetComponent.h>
+#include "EnemyHP.h"
+#include "TextAlarmUI.h"
 
 // Sets default values
 AIH_Enemy::AIH_Enemy()
@@ -40,13 +44,11 @@ AIH_Enemy::AIH_Enemy()
 	compBox->SetupAttachment(RootComponent);
 	compBox->SetRelativeLocation(FVector(-60, 0, 0));
 
-
 	// HandBox 컴포넌트 추가
 	compHandBox = CreateDefaultSubobject<UBoxComponent>(TEXT("HandBox"));
 	compHandBox->SetBoxExtent(FVector(10, 30, 10));
 	compHandBox->SetupAttachment(GetMesh(),TEXT("Socket_RightHand"));
 	compHandBox->SetRelativeLocation(FVector(0,-10,0));
-
 
 	// 부드럽게 회전시키기
 	bUseControllerRotationYaw = false;
@@ -63,24 +65,57 @@ AIH_Enemy::AIH_Enemy()
 
 	assasinateCam = CreateDefaultSubobject<UCameraComponent>(TEXT("AssasinateCam"));
 	assasinateCam->SetupAttachment(RootComponent);
+
+	compSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	compSphere->SetupAttachment(RootComponent);
+	compSphere->SetSphereRadius(250);
+
+	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget"));
+	compWidget->SetupAttachment(RootComponent);
+	compWidget->SetRelativeLocation(FVector(0, 0, 100));
+
+	ConstructorHelpers::FClassFinder<UEnemyHP>tempEnemyHP(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_EnemyHP.WG_EnemyHP_C'"));
+	if (tempEnemyHP.Succeeded())
+	{
+		compWidget->SetWidgetClass(tempEnemyHP.Class);
+		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compWidget->SetVisibility(false);
+	}
+
+	compAlarmWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("AlarmWidget"));
+	compAlarmWidget->SetupAttachment(RootComponent);
+	compAlarmWidget->SetRelativeLocation(FVector(0, 0, 115));
+
+	ConstructorHelpers::FClassFinder<UTextAlarmUI>tempAlarm(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_TextAlarmUI.WG_TextAlarmUI_C'"));
+	if (tempAlarm.Succeeded())
+	{
+		compAlarmWidget->SetWidgetClass(tempAlarm.Class);
+		compAlarmWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compAlarmWidget->SetVisibility(false);
+	}
 }
 
 // Called when the game starts or when spawned
 void AIH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
+
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnBackOverlap);
 	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnBackEndOverlap);
 
 	compHandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	compHandBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnHandOverlap);
+
+	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Enemy::OnSphereOverlap);
+	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Enemy::OnSphereEndOverlap);
+
+	enemyHPUI = Cast<UEnemyHP>(compWidget->GetWidgetClass());
 }
 
 // Called every frame
 void AIH_Enemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -98,6 +133,7 @@ void AIH_Enemy::OnBackOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		if (character != nullptr)
 		{
 			character->isBack = true;
+			compAlarmWidget->SetVisibility(true);
 			//character->backEnemy = this;
 		}
 	}
@@ -112,6 +148,7 @@ void AIH_Enemy::OnBackEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 		if (character != nullptr)
 		{
 			character->isBack = false;
+			compAlarmWidget->SetVisibility(false);
 			//character->backEnemy = nullptr;
 		}
 	}
@@ -129,6 +166,32 @@ void AIH_Enemy::OnHandOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 			{
 				character->OnHitEvent();
 			}
+		}
+	}
+}
+
+void AIH_Enemy::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this)
+	{
+		character = Cast<ATPSPlayer>(OtherActor);
+
+		if (character != nullptr)
+		{
+			compWidget->SetVisibility(true);
+		}
+	}
+}
+
+void AIH_Enemy::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor != this)
+	{
+		character = Cast<ATPSPlayer>(OtherActor);
+
+		if (character != nullptr)
+		{
+			compWidget->SetVisibility(false);
 		}
 	}
 }

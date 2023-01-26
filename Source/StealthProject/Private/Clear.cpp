@@ -16,6 +16,12 @@ AClear::AClear()
 
 	compBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Clear"));
 	compBox->SetBoxExtent(FVector(250, 20, 150));
+
+	ConstructorHelpers::FClassFinder<UIH_ClearUI>tempclear(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_ClearUI.WG_ClearUI_C'"));
+	if (tempclear.Succeeded())
+	{
+		gameClearWidget = tempclear.Class;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -24,6 +30,8 @@ void AClear::BeginPlay()
 	Super::BeginPlay();
 	
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AClear::OnOverlap);
+
+	gameClearUI = CreateWidget<UIH_ClearUI>(GetWorld(), gameClearWidget);
 }
 
 // Called every frame
@@ -43,18 +51,12 @@ void AClear::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherAc
 	{
 		if (character != nullptr)  // 캐릭터가 null이 아닐 때
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Clear!"));
-			ShowGameClearUI();  // GameClear UI가 보이고
-			UGameplayStatics::SetGamePaused(GetWorld(), true);  // 게임이 Paused 되고
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서가 보인다.
+			if (gameClearUI->IsInViewport() == false)
+			{
+// 				UGameplayStatics::SetGamePaused(GetWorld(), true);  // 게임이 Paused 되고
+// 				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // 마우스 커서가 보인다.
+				gameClearUI->AddToViewport();
+			}
 		}
 	}
-	else return;
-}
-
-void AClear::ShowGameClearUI()
-{
-	gameClearUI = CreateWidget<UIH_ClearUI>(GetWorld(), gameClearWidget);
-
-	gameClearUI->AddToViewport();
 }

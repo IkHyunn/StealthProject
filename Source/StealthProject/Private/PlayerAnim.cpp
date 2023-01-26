@@ -28,25 +28,25 @@ void UPlayerAnim::NativeBeginPlay()
 
 void UPlayerAnim::NativeUpdateAnimation(float DeltaSeconds)    // [Event BLueprint Update Animation] 노드와 같은기능
 {
-// 플레이어의 이동속도를 가져와 SPEED에 할당하고 싶다
-Super::NativeUpdateAnimation(DeltaSeconds);    // 부모 실행
+	// 플레이어의 이동속도를 가져와 SPEED에 할당하고 싶다
+	Super::NativeUpdateAnimation(DeltaSeconds);    // 부모 실행
 
-if (player)   
-	{
-	// 대기 <-> 이동
-	FVector velocity = player->GetVelocity();
-	FVector forwardVector = player->GetActorForwardVector();
-	speed = FVector::DotProduct(forwardVector, velocity);   // 전후내적 speed
+	if (player)   
+		{
+		// 대기 <-> 이동
+		FVector velocity = player->GetVelocity();
+		FVector forwardVector = player->GetActorForwardVector();
+		speed = FVector::DotProduct(forwardVector, velocity);   // 전후내적 speed
 
-	// 좌우속도 할당하기
-	FVector rightVector = player->GetActorRightVector();
-	direction = FVector::DotProduct(rightVector, velocity);  // 좌우내적 derection
+		// 좌우속도 할당하기
+		FVector rightVector = player->GetActorRightVector();
+		direction = FVector::DotProduct(rightVector, velocity);  // 좌우내적 derection
 
 
-	// 점프
-	auto movement = player->GetCharacterMovement();   // movement 
-	isInAir = movement->IsFalling();    //  공중에 있는지 isInAir
-	}
+		// 점프
+		auto movement = player->GetCharacterMovement();   // movement 
+		isInAir = movement->IsFalling();    //  공중에 있는지 isInAir
+		}
 }
 
 // 암살 애니메이션 몽타주 재생 함수 
@@ -129,7 +129,7 @@ void UPlayerAnim::AnimNotify_Crack()
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	playerController->PlayerCameraManager->StartCameraShake(cameraShake);
 
-	playerController->SetViewTargetWithBlend(player, 0.5);
+
 }
 
 void UPlayerAnim::AnimNotify_AssasinateEnd()
@@ -139,6 +139,7 @@ void UPlayerAnim::AnimNotify_AssasinateEnd()
 
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	player->EnableInput(playerController);
+	playerController->SetViewTargetWithBlend(player, 0.5);
 }
 
 // DamageEnd 애님 노티파이

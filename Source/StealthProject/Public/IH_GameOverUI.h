@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UButton* btnQuit;
 
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* GameOver;
+
 	UFUNCTION()
 	void Retry();  // 다시하기 버튼 함수
 	UFUNCTION()

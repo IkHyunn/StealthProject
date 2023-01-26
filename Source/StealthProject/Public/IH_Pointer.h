@@ -13,5 +13,11 @@ UCLASS()
 class STEALTHPROJECT_API UIH_Pointer : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void NativeConstruct() override;
+
+public:
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* PickUp;
 };

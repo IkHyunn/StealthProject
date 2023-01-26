@@ -37,13 +37,14 @@ AKal::AKal()
 
 	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
 	compWidget->SetupAttachment(RootComponent);
-	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+	compWidget->SetRelativeLocation(FVector(15, 0, 30));
 
-	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_Pointer.WG_Pointer_C'"));
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);
 		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compWidget->SetVisibility(false);
 	}
 }
 
@@ -53,7 +54,7 @@ void AKal::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AKal::OnOverlap);
-	compWidget->SetVisibility(false);
+	compBox->OnComponentEndOverlap.AddDynamic(this, &AKal::OnEndOverlap);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AKal::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AKal::OnSphereEndOverlap);
 }
@@ -71,13 +72,23 @@ void AKal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 
 	if (character != nullptr)    // ³ÎÀÌ ¾Æ´Ï¶ó¸é 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pickup Kal"));
-		character->bgetKal = true;      //  Ä®¿©ºÎ = true, trueÀÏ ¶§¸¸ 3¹ø Å°¸¦ ´©¸¦ ¼ö ÀÖÀ½.
-		character->ChangeToKal();   //  Ä® ÇÔ¼öÈ£Ãâ
-		character->anim->isKal = true;  //   Ä® ¾Ö´Ô = true
-		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô no
+		character->pickKnife=this;
+// 		character->bgetKal = true;      //  Ä®¿©ºÎ = true, trueÀÏ ¶§¸¸ 3¹ø Å°¸¦ ´©¸¦ ¼ö ÀÖÀ½.
+// 		character->ChangeToKal();   //  Ä® ÇÔ¼öÈ£Ãâ
+// 		character->anim->isKal = true;  //   Ä® ¾Ö´Ô = true
+// 		character->anim->isGunEquipped = false;  // ÃÑ¾Ö´Ô no
+// 
+// 		Destroy();
+	}
+}
 
-		Destroy();
+void AKal::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
+
+	if (character != nullptr)
+	{
+		character->pickKnife = nullptr;
 	}
 }
 

@@ -37,14 +37,20 @@ public:
 	class UWidgetComponent* compWidget;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf <class UUserWidget> tempPointer;
+	class ATPSPlayer* character;
 
 	UPROPERTY(EditAnywhere)
-	class ATPSPlayer* character;
+	class UWidgetComponent* compAlarmWidget;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UTextAlarmUI> alarmFactory;
 
 public:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

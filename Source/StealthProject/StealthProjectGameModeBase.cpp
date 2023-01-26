@@ -7,6 +7,7 @@
 #include "IH_MainMenu.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/GameplayStatics.h>
+#include <Components/TextBlock.h>
 
 AStealthProjectGameModeBase::AStealthProjectGameModeBase()
 {
@@ -43,10 +44,13 @@ void AStealthProjectGameModeBase::BeginPlay()
 void AStealthProjectGameModeBase::AddScore(int32 addValue)
 {
 	currScore += addValue;
-	
-	UE_LOG(LogTemp, Warning, TEXT("currScore : %d"), currScore);
 
 	countUI->UpdateCurrScoreUI(currScore);
+
+	if (currScore >= 5)
+	{
+		countUI->completeText->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void AStealthProjectGameModeBase::ShowGameOverUI()

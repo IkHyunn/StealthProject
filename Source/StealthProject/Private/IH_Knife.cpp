@@ -38,13 +38,14 @@ AIH_Knife::AIH_Knife()
 
 	compWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pointer"));
 	compWidget->SetupAttachment(RootComponent);
-	compWidget->SetRelativeLocation(FVector(15, 0, 60));
+	compWidget->SetRelativeLocation(FVector(15, 0, 30));
 
-	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WBP_Pointer.WBP_Pointer_C'"));
+	ConstructorHelpers::FClassFinder<UUserWidget> tempWidget(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_Pointer.WG_Pointer_C'"));
 	if (tempWidget.Succeeded())
 	{
 		compWidget->SetWidgetClass(tempWidget.Class);
 		compWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		compWidget->SetVisibility(false);
 	}
 }
 
@@ -54,7 +55,7 @@ void AIH_Knife::BeginPlay()
 	Super::BeginPlay();
 
 	compBox->OnComponentBeginOverlap.AddDynamic(this, &AIH_Knife::OnOverlap);
-	compWidget->SetVisibility(false);
+	compBox->OnComponentEndOverlap.AddDynamic(this, &AIH_Knife::OnEndOverlap);
 	compSphere->OnComponentBeginOverlap.AddDynamic(this, &AIH_Knife::OnSphereOverlap);
 	compSphere->OnComponentEndOverlap.AddDynamic(this, &AIH_Knife::OnSphereEndOverlap);
 }
@@ -72,14 +73,24 @@ void AIH_Knife::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 	if (character != nullptr)    // 널이 아니라면 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pickup BOW1"));
-		character->bgetbow = true;      //  활여부 = true, true일 때만 3번 키를 누를 수 있음.
-		character->anim->isBow = true;  //   활 애님 = true
-		character->ChangeToBow();   //  활 함수호출
+		character->pickBow = this;
+// 		character->bgetbow = true;      //  활여부 = true, true일 때만 3번 키를 누를 수 있음.
+// 		character->anim->isBow = true;  //   활 애님 = true
+// 		character->ChangeToBow();   //  활 함수호출
+// 
+// 		character->anim->isGunEquipped = false;  // 총애님 no
+// 
+// 		Destroy(); 
+	}
+}
 
-		character->anim->isGunEquipped = false;  // 총애님 no
+void AIH_Knife::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	character = Cast<ATPSPlayer>(OtherActor);
 
-		Destroy(); 
+	if (character != nullptr)
+	{
+		character->pickBow = nullptr;
 	}
 }
 

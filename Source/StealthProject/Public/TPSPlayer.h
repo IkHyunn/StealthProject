@@ -66,6 +66,24 @@ public: // 공장들, 위젯들, subclass
 	UPROPERTY(EditAnywhere)
 		class UCrosshairUI* crosshairUI;     // 크로스헤어 위젯
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UArrowCountUI> arrowcountFactory;
+
+	UPROPERTY(EditAnywhere)
+		class UArrowCountUI* arrowcountUI;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UPlayerHP> playerHPFactory;
+
+	UPROPERTY(EditAnywhere)
+		class UPlayerHP* playerHPUI;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UPlusCountUI> pluscountFactory;
+
+	UPROPERTY(EditAnywhere)
+		class UPlusCountUI* plusCountUI;
+
 
 public: // 시간, 속도, hp  변수 등..
 		
@@ -73,16 +91,19 @@ public: // 시간, 속도, hp  변수 등..
 	FVector direction = FVector::ZeroVector;  
 
 	UPROPERTY(EditAnywhere)                 // 현재 총알개수
-		int32 currentBullet = 0;
+		int32 currentArrow = 0;
 
 	UPROPERTY(EditAnywhere)                 // 공격 딜레이시간
 		float attackDelayTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = Health)    // 현재 HP
-		int32 HP;  
+		float HP;  
 
 	UPROPERTY(EditDefaultsOnly, Category = Health)    // 최초 HP
-		int32 initialHP = 5;  
+		float maxHP = 5;
+		
+	UPROPERTY(EditDefaultsOnly, Category = Health)
+		float prevHP;
 
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)     // 걷기 속도
 		float walkSpeed = 375;                 
@@ -112,6 +133,18 @@ public: // 시간, 속도, hp  변수 등..
 		
 	FHitResult hitInfo;    // 충돌정보
 
+	UPROPERTY(EditAnywhere)
+		class AIH_HPItem* pickHPItem = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		class AKal* pickKnife = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		class AIH_Bullet* pickArrow = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		class AIH_Knife* pickBow = nullptr;
+
 
 // 무기 아이템 보이기 여부판정위한
 	UPROPERTY(EditAnywhere) 
@@ -135,13 +168,31 @@ public: // 시간, 속도, hp  변수 등..
 
 	UPROPERTY(EditAnywhere)
 		bool isAttacking = false; 
-		
+
 	UPROPERTY(EditAnywhere)
 		bool saveAttack = false;
 
 	UPROPERTY(EditAnywhere)
 		class APlayerController* playerController;
 
+// 사운드 변수
+	UPROPERTY(EditAnywhere)
+		class USoundBase* bowLoadingSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundBase* pickKnifeSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundBase* pickArrowSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundBase* pickBowSound;
+
+	UPROPERTY(EditAnywhere)
+		class USoundBase* swordDamagedSound;
+	
+	UPROPERTY(EditAnywhere)
+		class USoundBase* punchDamagedSound;
 	
 
 public: //  함수
@@ -154,17 +205,20 @@ public: //  함수
 	void InputFire();   //  발사 
 	void InputRun();   //  달리기
 	void InputCrouch(); // 숙이기
-//	void InputAttack(); // 공격
 	void SniperAim();     //조준
 	void InputAssasinate();  // 암살
 	void ChangeToPunch();    // 주먹
 	void ChangeToBow();    // 활
 	void ChangeToKal();    // 칼
+	void InputMission();
+	void InputPickUp();
 	void fireEffect(); // 총 이펙트  
 	void LineTrace();  // 라인트레이스
 
 	void ComboAttackSave();
 	void ComboReset();
+	
+	void ReceiveDamage(float damage);
 
 // UFUNCTION
 	UFUNCTION(BlueprintCallable, Category = Health)
