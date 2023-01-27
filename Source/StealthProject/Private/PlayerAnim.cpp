@@ -133,7 +133,7 @@ void UPlayerAnim::AnimNotify_Crack()
 void UPlayerAnim::AnimNotify_AssasinateEnd()
 {
 	player->bUseControllerRotationYaw=true;
-	player->SetActorLocation(player->GetActorLocation()+player->GetActorForwardVector()*180);
+	player->SetActorLocation(player->GetActorLocation()+player->GetActorForwardVector()*175);
 
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	player->EnableInput(playerController);

@@ -580,7 +580,7 @@ void ATPSPlayer::InputAssasinate()  // 암살하는 함수(키보드 E)
 			if (hitBack.GetActor()->GetName().Contains(TEXT("Enemy")))
 			{
 				backEnemy = Cast<AIH_Enemy>(hitBack.GetActor());
-				FVector playerPos = backEnemy->GetActorLocation() + backEnemy->GetActorForwardVector() * -180.0;
+				FVector playerPos = backEnemy->GetActorLocation() + backEnemy->GetActorForwardVector() * -175.0;
 
 				playerController = GetWorld()->GetFirstPlayerController();
 				this->DisableInput(playerController);
