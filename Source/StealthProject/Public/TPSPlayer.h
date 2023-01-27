@@ -118,7 +118,7 @@ public: // 시간, 속도, hp  변수 등..
 		float zoomIn = 90;
 
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)  // 줌 아웃 시작 거리
-		float zoomOut = 75;
+		float backAttackzoom = 75;
 
 	UPROPERTY(EditAnywhere)                 // 콤보 저장
 		int32 attackCount = 0;

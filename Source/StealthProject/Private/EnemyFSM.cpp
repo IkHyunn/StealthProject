@@ -207,7 +207,7 @@ void UEnemyFSM::OnBackAttack()
 {
 	currHP = 0;
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
-	playerController->SetViewTargetWithBlend(me, 0.5);
+	playerController->SetViewTargetWithBlend(me, 0.8,VTBlend_Cubic);
 
 	anim->bAttackPlay = false;
 
