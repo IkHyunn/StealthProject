@@ -37,4 +37,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float rotateZ = 0;
+
+	UPROPERTY(EditAnywhere)
+	class USoundBase* doorSound;
 };

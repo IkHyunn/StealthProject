@@ -13,5 +13,22 @@ UCLASS()
 class STEALTHPROJECT_API AMyGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	AMyGameModeBase();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UIH_MainMenu> mainmenuWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UIH_MainMenu* mainMenuUI;
+
+public:
+	UFUNCTION(BlueprintCallable)
+		void ShowMainMenuUI();
 };

@@ -4,7 +4,6 @@
 #include "StealthProjectGameModeBase.h"
 #include "IH_CountUI.h"
 #include "IH_GameOverUI.h"
-#include "IH_MainMenu.h"
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/GameplayStatics.h>
 #include <Components/TextBlock.h>
@@ -24,12 +23,6 @@ AStealthProjectGameModeBase::AStealthProjectGameModeBase()
 	{
 		gameoverWidget = tempGameover.Class;
 	}
-
-	ConstructorHelpers::FClassFinder<UIH_MainMenu> tempMainmenu(TEXT("WidgetBlueprint'/Game/Wise/Widget/WG_MainMenu.WG_MainMenu_C'"));
-	if (tempMainmenu.Succeeded())
-	{
-		mainmenuWidget = tempMainmenu.Class;
-	}
 }
 
 void AStealthProjectGameModeBase::BeginPlay()
@@ -37,8 +30,6 @@ void AStealthProjectGameModeBase::BeginPlay()
 	Super::BeginPlay();
 
 	countUI = CreateWidget<UIH_CountUI>(GetWorld(), countWidget);
-
-	mainMenuUI = CreateWidget<UIH_MainMenu>(GetWorld(), mainmenuWidget);	
 }
 
 void AStealthProjectGameModeBase::AddScore(int32 addValue)
@@ -57,13 +48,6 @@ void AStealthProjectGameModeBase::ShowGameOverUI()
 {
 	gameoverUI = CreateWidget<UIH_GameOverUI>(GetWorld(), gameoverWidget);
 	gameoverUI->AddToViewport();
-	UGameplayStatics::SetGamePaused(GetWorld(), true);  // °ÔÀÓÀ» ¸ØÃá´Ù.
+//	UGameplayStatics::SetGamePaused(GetWorld(), true);  // °ÔÀÓÀ» ¸ØÃá´Ù.
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);  // ¸¶¿ì½º Ä¿¼­¸¦ È­¸é¿¡ ¶ç¿î´Ù.
-}
-
-void AStealthProjectGameModeBase::ShowMainMenuUI()
-{
-	mainMenuUI->AddToViewport();
-	GetWorld(), GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
