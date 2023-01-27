@@ -342,7 +342,7 @@ void ATPSPlayer::InputCrouch()   // 웅크리기
 
 void ATPSPlayer::InputFire()  
 {
-
+	if(anim->isInAir==true) return;
 	// 펀치이면= 1번이 눌러졌을 때만 왼쪽 마우스로 펀치하고 다른 번호를 눌러야 나간다
 	if (bPunch)
 	{ 
