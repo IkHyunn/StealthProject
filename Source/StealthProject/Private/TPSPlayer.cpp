@@ -205,7 +205,7 @@ void ATPSPlayer::BeginPlay()
 	crosshairUI = CreateWidget<UCrosshairUI>(GetWorld(), crosshairFactory);
 	arrowcountUI = CreateWidget<UArrowCountUI>(GetWorld(), arrowcountFactory);
 	playerHPUI = CreateWidget<UPlayerHP>(GetWorld(), playerHPFactory);
-	playerHPUI->AddToViewport();
+	playerHPUI -> AddToViewport();
 	plusCountUI = CreateWidget<UPlusCountUI>(GetWorld(), pluscountFactory);
 
 	righthandBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
@@ -719,7 +719,9 @@ void ATPSPlayer::OnHitEvent()  // 피격 이벤트
 		//anim->PlayDamageAnim(TEXT("Die"));
 		if (anim->isDieDone == true)   // Die 섹션이 끝나면 
 		{
-			OnGameOver();  // 게임 오버 함수 호출
+			AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();  // currMode에 현재 게임모드인 AStealthProjectGameModeBase를 가져온다.
+
+			currMode->ShowGameOverUI();  // 게임모드에서 만든 ShowGameOverUI 함수를 호출한다.
 		}
 	}
 	else  // 피격상태로

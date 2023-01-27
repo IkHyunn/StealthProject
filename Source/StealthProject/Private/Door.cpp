@@ -5,6 +5,8 @@
 #include "../StealthProjectGameModeBase.h"
 #include <Components/StaticMeshComponent.h>
 #include <Components/BoxComponent.h>
+#include <Kismet/GameplayStatics.h>
+#include <Sound/SoundBase.h>
 
 // Sets default values
 ADoor::ADoor()

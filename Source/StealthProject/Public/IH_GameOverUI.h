@@ -13,7 +13,8 @@ UCLASS()
 class STEALTHPROJECT_API UIH_GameOverUI : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -31,5 +32,4 @@ public:
 	void Retry();  // 다시하기 버튼 함수
 	UFUNCTION()
 	void Quit();  // 종료하기 버튼 함수
-
 };

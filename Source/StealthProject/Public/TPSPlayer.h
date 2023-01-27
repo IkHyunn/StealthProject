@@ -75,7 +75,7 @@ public: // 공장들, 위젯들, subclass
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UPlayerHP> playerHPFactory;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		class UPlayerHP* playerHPUI;
 
 	UPROPERTY(EditAnywhere)

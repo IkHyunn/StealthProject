@@ -40,14 +40,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UIH_GameOverUI* gameoverUI;
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UIH_MainMenu> mainmenuWidget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UIH_MainMenu* mainMenuUI;
-
 	void ShowGameOverUI();  // GameOverUI를 띄우는 함수, 캐릭터가 죽었을 때 호출
-
-	UFUNCTION(BlueprintCallable)
-	void ShowMainMenuUI();
 };

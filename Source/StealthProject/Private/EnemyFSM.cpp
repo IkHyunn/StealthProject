@@ -205,7 +205,6 @@ void UEnemyFSM::OnDamageProcess(float damage)
 
 void UEnemyFSM::OnBackAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Assasinated!"));
 	currHP = 0;
 	APlayerController* playerController = GetWorld()->GetFirstPlayerController();
 	playerController->SetViewTargetWithBlend(me, 0.5);
@@ -241,6 +240,7 @@ void UEnemyFSM::DieState()
 	{
 		anim->bAttackPlay = false;
 		anim->isOnHit = false;
+		me->enemyHPUI->UpdateEnemyHP(currHP, maxHP);
 
 		me->Destroy();  // 파괴한다.
 		AStealthProjectGameModeBase* currMode = GetWorld()->GetAuthGameMode<AStealthProjectGameModeBase>();
@@ -306,11 +306,13 @@ bool UEnemyFSM::IsDelayComplete(float delaytime)
 
 void UEnemyFSM::ChangeState(EEnemyState state)
 {
-	UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EEnemyState"), true);
-	if (enumPtr != nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s -> %s"), *(enumPtr->GetNameStringByIndex((int32)mState)), *(enumPtr->GetNameStringByIndex((int32)state)));
-	}
+// 	UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EEnemyState"), true);
+// 	if (enumPtr != nullptr)
+// 	{
+// 		UE_LOG(LogTemp, Warning, TEXT("%s -> %s"), *(enumPtr->GetNameStringByIndex((int32)mState)), *(enumPtr->GetNameStringByIndex((int32)state)));
+// 	}
+
+	if (target->HP<=0) return;
 
 	mState = state;  // 현재 상태를 매개변수로 갱신
 	anim->animState = state;  // 애니메이션 상태를 매개변수로 갱신
